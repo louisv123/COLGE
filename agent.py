@@ -3,8 +3,7 @@ import random
 import time
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Flatten, Input, Add, Dot, Concatenate
-from keras.activations import relu
+from keras.layers import Dense, Flatten, Input, Add, Dot, Concatenate, ReLU
 from keras.optimizers import sgd
 
 """
@@ -434,24 +433,28 @@ class TDQAgent:
         #### Build model #######
     def build_model(self,T):
 
-        xv = Input(shape=(self.nodes,))
-        mu = Input(shape=(self.p,self.nodes))
-        adj = Input(shape=(self.nodes, self.nodes))
+        xv = Input(batch_shape=(1, self.nodes, 1))
+        mu_init = Input(batch_shape=(1, self.nodes, p))
+        adj = Input(batch_shape=(1, self.nodes, self.nodes))
 
         for t in range(T):
-            mu_1 = Dense(self.p, input_dim=self.nodes)(xv)
-            mu_2 = Dense(self.p, input_dim=self.p)(Dot(adj, mu))
-            mu = relu(Add()([mu_1, mu_2]))
+            if t == 0:
+                mu_1 = Dense(self.p, input_shape=(1,self. nodes, 1))(xv)
+                mu_2 = Dense(self.p, input_shape=(1, self.nodes, self.p))(Dot(axes=1)([adj, mu_init]))
+                mu = ReLU()(Add()([mu_1, mu_2]))
+            else:
+                mu_1 = Dense(self.p, input_dim=self.nodes)(xv)
+                mu_2 = Dense(self.p, input_dim=self.nodes)(Dot(axes=1)([adj, mu]))
+                mu = ReLU()(Add()([mu_1, mu_2]))
 
-        q_1=Dense(self.p, input_dim=self.p)(Dot()([adj,mu]))
-        q_2=Dense(self.p,input_dim=self.p)(mu)
-        q=relu(Concatenate([q_1,q_2]))
+        q_1 = Dense(self.p, input_dim=self.p)(Dot(axes=1)([adj, mu]))
+        q_2 = Dense(self.p, input_dim=self.p)(mu)
+        q_ = Concatenate(axis=0)([q_1, q_2])
+        q = Dense(1, activation="relu")(q_)
 
-        model = Model(inputs=[xv, mu, adj], outputs=q)
-        model=model.compile(optimizer='rmsprop',
+        model = Model(inputs=[xv, mu_init, adj], outputs=q)
+        model.compile(optimizer='rmsprop',
                       loss='mse')
-
-        return model
 
     """
     p : embedding dimension

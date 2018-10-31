@@ -429,12 +429,12 @@ class TDQAgent:
 
         self.epsilon=1
         self.epsilon_min=0.05
-        self.discount_factor=0.8
+        self.discount_factor=0.98
         self.games = 0
         self.t=1
         self.memory=[]
         self.memory_n=[]
-        self.minibatch_length = 8
+        self.minibatch_length = 16
 
         self.last_action = 0
         self.last_observation = torch.zeros(self.nodes,1, dtype=torch.float)
@@ -446,7 +446,7 @@ class TDQAgent:
 
         self.model =self.S2V_QN(self.p,self.len_pre_pooling,self.len_post_pooling)
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1.e-8)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1.e-6)
         self.T=5
         #### Build model #######
 
@@ -547,7 +547,7 @@ class TDQAgent:
         self.epsilon=1
         self.last_action = 0
         self.last_observation = torch.zeros(self.nodes, 1, dtype=torch.float)
-        self.last_reward = -1
+        self.last_reward = 0
 
 
     def act(self, observation):
@@ -573,11 +573,12 @@ class TDQAgent:
                 target_p = target_f.clone()
                 target_f[action_,0] = target
                 loss=self.criterion(target_p, target_f)
-                #logging.info('Loss for t = %s is %f' % (self.t,loss))
+
 
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
+            #logging.info('Loss for t = %s is %f' % (self.t, loss))
 
             if self.epsilon > self.epsilon_min:
                self.epsilon *= self.discount_factor
@@ -608,7 +609,7 @@ class TDQAgent:
             for i in range(1,self.n_step):
                 step_init = self.memory[-self.n_step+i]
                 cum_reward=step_init[2]
-                for step in range(i,self.n_step):
+                for step in range(1,self.n_step-i):
                     cum_reward+=self.memory[-step][2]
                 self.memory_n.append((step_init[0],step_init[1],cum_reward,self.memory[-1][-1]))
 

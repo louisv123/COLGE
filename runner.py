@@ -3,6 +3,8 @@ This is the machinnery that runs your agent in an environment.
 
 This is not intented to be modified during the practical.
 """
+import matplotlib.pyplot as plt
+import numpy as np
 
 class Runner:
     def __init__(self, environment, agent, verbose=False):
@@ -20,11 +22,14 @@ class Runner:
     def loop(self, games, max_iter):
 
         cumul_reward = 0.0
+        list_cumul_reward_game=[]
+        mean_reward = []
 
         for g in range(1, games+1):
             self.environment.reset()
             self.agent.reset()
             cumul_reward_game = 0.0
+
             for i in range(1, max_iter+1):
                 #if self.verbose:
                     #print("Simulation step {}:".format(i))
@@ -39,6 +44,10 @@ class Runner:
                     if done:
                         print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward_game))
                         print(" ->    MVC_approx = {}".format(self.environment.get_mvc_approx()))
+
+                        list_cumul_reward_game.append(-cumul_reward_game)
+                        if g>100:
+                            mean_reward.append(np.mean(list_cumul_reward_game[-100:]))
                 if done:
                     break
 
@@ -46,6 +55,8 @@ class Runner:
             if self.verbose:
                 print(" <=> Finished game number: {} <=>".format(g))
                 print("")
+        plt.plot(mean_reward)
+        plt.show()
         return cumul_reward
 
 def iter_or_loopcall(o, count):

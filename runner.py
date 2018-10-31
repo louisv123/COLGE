@@ -13,30 +13,36 @@ class Runner:
     def step(self):
         observation = self.environment.observe()
         action = self.agent.act(observation)
-        (reward, stop) = self.environment.act(action)
-        self.agent.reward(observation, action, reward)
-        return (observation, action, reward, stop)
+        (reward, done) = self.environment.act(action)
+        self.agent.reward(observation, action, reward,done)
+        return (observation, action, reward, done)
 
     def loop(self, games, max_iter):
+
         cumul_reward = 0.0
+
         for g in range(1, games+1):
             self.environment.reset()
             self.agent.reset()
+            cumul_reward_game = 0.0
             for i in range(1, max_iter+1):
-                if self.verbose:
-                    print("Simulation step {}:".format(i))
-                (obs, act, rew, stop) = self.step()
+                #if self.verbose:
+                    #print("Simulation step {}:".format(i))
+                (obs, act, rew, done) = self.step()
                 cumul_reward += rew
+                cumul_reward_game+=rew
                 if self.verbose:
-                    print(" ->       observation: {}".format(obs))
-                    print(" ->            action: {}".format(act))
-                    print(" ->            reward: {}".format(rew))
-                    print(" -> cumulative reward: {}".format(cumul_reward))
-                    if stop =="stop":
-                        print(" ->    Terminal event: {}".format(stop))
-                    print("")
-                if stop =="stop":
+                    #print(" ->       observation: {}".format(obs))
+                    #print(" ->            action: {}".format(act))
+                    #print(" ->            reward: {}".format(rew))
+                    #print(" -> cumulative reward: {}".format(cumul_reward))
+                    if done:
+                        print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward_game))
+                        print(" ->    MVC_approx = {}".format(self.environment.get_mvc_approx()))
+                if done:
                     break
+
+
             if self.verbose:
                 print(" <=> Finished game number: {} <=>".format(g))
                 print("")

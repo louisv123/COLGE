@@ -1,10 +1,17 @@
 import numpy as np
 import random
 import time
+import logging
 
-from keras.models import Sequential, Model
-from keras.layers import Dense, Flatten, Input, Add, Dot, Concatenate, ReLU
-from keras.optimizers import sgd
+import torch
+
+
+
+# Set up logger
+logging.basicConfig(
+    format='%(asctime)s:%(levelname)s:%(message)s',
+    level=logging.INFO
+)
 
 """
 Contains the definition of the agent that will run in an
@@ -410,51 +417,114 @@ class TDQAgent:
         self.nodes=graph.nodes()
         self.adj = graph.adj()
         self.adj=self.adj.todense()
-        self.p = 50
+        self.adj=torch.from_numpy(self.adj.astype(int))
+        self.adj = self.adj.type(torch.FloatTensor)
+        self.p = 64
 
         self.k = 20
         self.alpha = 0.1
-        self.gamma = 0.99
-        self.lambd = 0.99
+        self.gamma = 1
+        self.lambd = 0.
+        self.n_step=5
 
-        self.epsilon=0.1
+        self.epsilon=1
+        self.epsilon_min=0.05
+        self.discount_factor=0.8
         self.games = 0
         self.t=1
         self.memory=[]
-        self.minibacth_lentgh = 8
+        self.memory_n=[]
+        self.minibatch_length = 8
 
         self.last_action = 0
-        self.last_observation = np.zeros(self.nodes)
+        self.last_observation = torch.zeros(self.nodes,1, dtype=torch.float)
         self.last_reward = -1
-        self.mu_init = np.zeros((self.p, self.nodes))
+        self.mu_init = torch.zeros(self.nodes,self.p,dtype=torch.float)
 
-        self.model = self.build_model(T=4)
+        self.len_pre_pooling=2
+        self.len_post_pooling =2
 
+        self.model =self.S2V_QN(self.p,self.len_pre_pooling,self.len_post_pooling)
+        self.criterion = torch.nn.MSELoss(reduction='sum')
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1.e-8)
+        self.T=5
         #### Build model #######
-    def build_model(self,T):
 
-        xv = Input(batch_shape=(1, self.nodes, 1))
-        mu_init = Input(batch_shape=(1, self.nodes, p))
-        adj = Input(batch_shape=(1, self.nodes, self.nodes))
+    class S2V_QN(torch.nn.Module):
+        def __init__(self, p,len_pre_pooling,len_post_pooling):
 
-        for t in range(T):
-            if t == 0:
-                mu_1 = Dense(self.p, input_shape=(1,self. nodes, 1))(xv)
-                mu_2 = Dense(self.p, input_shape=(1, self.nodes, self.p))(Dot(axes=1)([adj, mu_init]))
-                mu = ReLU()(Add()([mu_1, mu_2]))
-            else:
-                mu_1 = Dense(self.p, input_dim=self.nodes)(xv)
-                mu_2 = Dense(self.p, input_dim=self.nodes)(Dot(axes=1)([adj, mu]))
-                mu = ReLU()(Add()([mu_1, mu_2]))
+            super(TDQAgent.S2V_QN, self).__init__()
+            self.len_pre_pooling=len_pre_pooling
+            self.len_post_pooling=len_post_pooling
+            self.mu_1 = torch.nn.Linear(1, p)
+            self.mu_2 = torch.nn.Linear(p, p)
+            self.list_pre_pooling=[]
+            for i in range(self.len_pre_pooling):
+                self.list_pre_pooling.append(torch.nn.Linear(p,p))
 
-        q_1 = Dense(self.p, input_dim=self.p)(Dot(axes=1)([adj, mu]))
-        q_2 = Dense(self.p, input_dim=self.p)(mu)
-        q_ = Concatenate(axis=0)([q_1, q_2])
-        q = Dense(1, activation="relu")(q_)
+            self.list_post_pooling=[]
+            for i in range(self.len_post_pooling):
+                self.list_post_pooling.append(torch.nn.Linear(p,p))
 
-        model = Model(inputs=[xv, mu_init, adj], outputs=q)
-        model.compile(optimizer='rmsprop',
-                      loss='mse')
+            self.q_1 = torch.nn.Linear(p, p)
+            self.q_2 = torch.nn.Linear(p, p)
+            self.q = torch.nn.Linear(2 * p, 1)
+
+        def forward(self, xv, adj, mu_init,T):
+
+            for t in range(T):
+                if t == 0:
+                    mu_1 = self.mu_1(xv)
+                    mu_2 = self.mu_2(torch.matmul(adj, mu_init))
+                    mu = torch.add(mu_1, mu_2).clamp(0)
+
+                else:
+                    mu_1 = self.mu_1(xv)
+
+                    #before pooling:
+                    for i in range(self.len_pre_pooling):
+                        mu = self.list_pre_pooling[i](mu).clamp(0)
+
+                    mu_pool=torch.matmul(adj, mu)
+
+                    #after pooling
+                    for i in range(self.len_post_pooling):
+                        mu_pool = self.list_post_pooling[i](mu_pool).clamp(0)
+
+
+                    mu_2 = self.mu_2(mu_pool)
+                    mu = torch.add(mu_1, mu_2).clamp(0)
+
+            q_1 = self.q_1(torch.matmul(adj, mu))
+            q_2 = self.q_2(mu)
+            q_ = torch.cat((q_1, q_2), dim=1)
+            q = self.q(q_)
+            return q
+
+    # def build_model(self,T):
+    #
+    #     xv = Input(batch_shape=(1, self.nodes, 1))
+    #     mu_init = Input(batch_shape=(1, self.nodes, p))
+    #     adj = Input(batch_shape=(1, self.nodes, self.nodes))
+    #
+    #     for t in range(T):
+    #         if t == 0:
+    #             mu_1 = Dense(self.p)(xv)
+    #             mu_2 = Dense(self.p)(Dot(axes=1)([adj, mu_init]))
+    #             mu = ReLU()(Add()([mu_1, mu_2]))
+    #         else:
+    #             mu_1 = Dense(self.p)(xv)
+    #             mu_2 = Dense(self.p)(Dot(axes=1)([adj, mu]))
+    #             mu = ReLU()(Add()([mu_1, mu_2]))
+    #
+    #     q_1 = Dense(self.p)(Dot(axes=1)([adj, mu]))
+    #     q_2 = Dense(self.p)(mu)
+    #     q_ = Concatenate(axis=2)([q_1, q_2])
+    #     q = Dense(1, activation="relu")(q_)
+    #
+    #     model = Model(inputs=[xv, mu_init, adj], outputs=q)
+    #     model.compile(optimizer='rmsprop',
+    #                   loss='mse')
 
     """
     p : embedding dimension
@@ -470,37 +540,52 @@ class TDQAgent:
 
     def reset(self):
 
-        self.xv=np.zeros(self.nodes)
-
         self.t=1
-        self.memory=[]
+        #self.memory=[]
+        #self.memory_n=[]
         self.games += 1
+        self.epsilon=1
+        self.last_action = 0
+        self.last_observation = torch.zeros(self.nodes, 1, dtype=torch.float)
+        self.last_reward = -1
 
 
     def act(self, observation):
 
 
-        if self.games < 190 and self.epsilon > np.random.rand():
-            return np.random.choice(np.flatnonzero(self.xv_bar == 1))
+        if self.epsilon > np.random.rand():
+            return np.random.choice(np.where(observation.numpy() == 0)[0])
         else:
-            q_a = self.model.predict(x=[observation,self.mu_init,self.adj])
+            q_a = self.model(observation,self.adj,self.mu_init,self.T)[:,0]
+            q_a=q_a.detach().numpy()
+            return np.where((q_a==np.max(q_a[observation.numpy()[:,0]==0])))[0]
 
-        return np.argmax(q_a)
+    def reward(self, observation, action, reward,done):
 
-    def reward(self, observation, action, reward):
 
-        if self.t > self.minibatch_length:
-            minibatch = random.sample(self.memory, self.minibatch_length - 1)
-            minibatch.append(self.memory[-1])
+
+        if self.t > self.minibatch_length+self.n_step:
+            minibatch = random.sample(self.memory_n, self.minibatch_length - 1)
+            minibatch.append(self.memory_n[-1])
             for self.last_observation, action_, reward_, observation_ in minibatch:
-                target = (reward_ + self.gamma * np.amax(self.model.predict(x=[observation_,self.mu_init,self.adj])[-1]))
-                target_f = self.model.predict(x=[self.last_observation,self.mu_init,self.adj])
-                target_f[-1][action_] = target
-                self.model.fit(self.last_observation, target_f, epochs=1, verbose=0)
-            # if self.epsilon > self.epsilon_min:
-            #   self.epsilon *= self.discount_factor
+                target = (reward_ + self.gamma * torch.max(self.model(observation_,self.adj,self.mu_init,self.T)[observation_==0]))
+                target_f = self.model(self.last_observation,self.adj,self.mu_init,self.T)
+                target_p = target_f.clone()
+                target_f[action_,0] = target
+                loss=self.criterion(target_p, target_f)
+                #logging.info('Loss for t = %s is %f' % (self.t,loss))
+
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+
+            if self.epsilon > self.epsilon_min:
+               self.epsilon *= self.discount_factor
 
         self.remember(self.last_observation, self.last_action, self.last_reward, observation)
+
+        if self.t > self.n_step:
+            self.remember_n(done)
         self.t += 1
         self.last_action = action
         self.last_observation = observation
@@ -509,6 +594,26 @@ class TDQAgent:
 
     def remember(self, last_observation, last_action, last_reward, observation):
         self.memory.append((last_observation, last_action, last_reward, observation))
+
+    def remember_n(self,done):
+
+        if not done:
+            step_init = self.memory[-self.n_step]
+            cum_reward=step_init[2]
+            for step in range(1,self.n_step):
+                cum_reward+=self.memory[-step][2]
+            self.memory_n.append((step_init[0],step_init[1],cum_reward,self.memory[-1][-1]))
+
+        else:
+            for i in range(1,self.n_step):
+                step_init = self.memory[-self.n_step+i]
+                cum_reward=step_init[2]
+                for step in range(i,self.n_step):
+                    cum_reward+=self.memory[-step][2]
+                self.memory_n.append((step_init[0],step_init[1],cum_reward,self.memory[-1][-1]))
+
+
+
 
 
 

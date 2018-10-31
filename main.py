@@ -2,6 +2,8 @@ import argparse
 import agent
 import environment
 import runner
+import graph
+import logging
 import sys
 
 # # 2to3 compatibility
@@ -10,20 +12,34 @@ import sys
 # except NameError:
 #     pass
 
+# Set up logger
+logging.basicConfig(
+    format='%(asctime)s:%(levelname)s:%(message)s',
+    level=logging.INFO
+)
+
 parser = argparse.ArgumentParser(description='RL running machine')
 parser.add_argument('--environment', metavar='ENV_CLASS', type=str, default='Environment', help='Class to use for the environment. Must be in the \'environment\' module')
 parser.add_argument('--agent', metavar='AGENT_CLASS', default='Agent', type=str, help='Class to use for the agent. Must be in the \'agent\' module.')
-parser.add_argument('--graph',metavar='GRAPH',help =' Type of graph to optimize')
-parser.add_argument('--ngames', type=int, metavar='n', default='50', help='number of games to simulate')
-parser.add_argument('--niter', type=int, metavar='n', default='2000', help='max number of iterations per game')
+parser.add_argument('--graph',metavar='GRAPH', default='erdos_renyi',help ='Type of graph to optimize')
+parser.add_argument('--ngames', type=int, metavar='n', default='500', help='number of games to simulate')
+parser.add_argument('--niter', type=int, metavar='n', default='1000', help='max number of iterations per game')
 parser.add_argument('--batch', type=int, metavar='nagent', default=None, help='batch run several agent at the same time')
-parser.add_argument('--verbose', action='store_true', help='Display cumulative results at each step')
+parser.add_argument('--verbose', action='store_true', default=True, help='Display cumulative results at each step')
 parser.add_argument('--interactive', action='store_true', help='After training, play once in interactive mode. Ignored in batch mode.')
 
 def main():
     args = parser.parse_args()
-    agent_class = eval('agent.{}'.format(args.agent))
-    env_class = eval('environment.{}({})'.format(args.environment,args.graph))
+    # agent_class = eval('agent.{}'.format(args.agent))
+    # env_class = eval('environment.{}({})'.format(args.environment,args.graph))
+    logging.info('Loading graph...')
+    graph_class=graph.Graph(graph_type="gnp_random_graph",cur_n=50,p=.1)
+
+    logging.info('Loading agent...')
+    agent_class=agent.Agent(graph_class)
+
+    logging.info('Loading environment...')
+    env_class=environment.Environment(graph_class)
 
     if args.batch is not None:
         print("Running a batched simulation with {} agents in parallel...".format(args.batch))
@@ -32,7 +48,7 @@ def main():
         print("Obtained a final average reward of {}".format(final_reward))
     else:
         print("Running a single instance simulation...")
-        my_runner = runner.Runner(env_class(), agent_class(), args.verbose)
+        my_runner = runner.Runner(env_class, agent_class, args.verbose)
         final_reward = my_runner.loop(args.ngames, args.niter)
         print("Obtained a final reward of {}".format(final_reward))
 

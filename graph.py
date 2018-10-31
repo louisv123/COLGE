@@ -12,6 +12,8 @@ class Graph:
             self.g = nx.powerlaw_cluster_graph(n=cur_n, m=m, p=p, seed=seed)
         elif graph_type == 'barabasi_albert':
             self.g = nx.barabasi_albert_graph(n=cur_n, m=m, seed=seed)
+        elif graph_type =='gnp_random_graph':
+            self.g = nx.gnp_random_graph(n=cur_n,p=p,seed=seed)
 
 
     def nodes(self):

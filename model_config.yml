@@ -1,0 +1,19 @@
+S2V_QN:
+  embed_dim: 64
+  len_pre_pooling: 2
+  len_post_pooling: 2
+  T: 5
+
+W2V_QN:
+  embed_dim: 64
+  window_size: 5
+  num_paths: 500
+  path_length: 80
+  len_pre_pooling: 2
+  len_post_pooling: 2
+  T: 5
+
+LINE_QN:
+  size: 50
+  embed_dim: 64
+  orde: 1

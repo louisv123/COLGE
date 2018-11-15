@@ -40,6 +40,10 @@ class Graph:
 
         return nx.all_neighbors(self.g,node)
 
+    def average_neighbor_degree(self, node):
+
+        return nx.average_neighbor_degree(self.g, nodes=node)
+
     def adj(self):
 
         return nx.adjacency_matrix(self.g)

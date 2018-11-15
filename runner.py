@@ -55,7 +55,7 @@ class Runner:
             if self.verbose:
                 print(" <=> Finished game number: {} <=>".format(g))
                 print("")
-        plt.plot(mean_reward)
+        plt.plot(list_cumul_reward_game)
         plt.show()
         return cumul_reward
 

@@ -4,6 +4,7 @@ import environment
 import runner
 import graph
 import logging
+import networkx as nx
 import sys
 
 # # 2to3 compatibility
@@ -21,8 +22,9 @@ logging.basicConfig(
 parser = argparse.ArgumentParser(description='RL running machine')
 parser.add_argument('--environment', metavar='ENV_CLASS', type=str, default='Environment', help='Class to use for the environment. Must be in the \'environment\' module')
 parser.add_argument('--agent', metavar='AGENT_CLASS', default='Agent', type=str, help='Class to use for the agent. Must be in the \'agent\' module.')
-parser.add_argument('--graph',metavar='GRAPH', default='erdos_renyi',help ='Type of graph to optimize')
-parser.add_argument('--ngames', type=int, metavar='n', default='10000', help='number of games to simulate')
+parser.add_argument('--graph_type',metavar='GRAPH', default='erdos_renyi',help ='Type of graph to optimize')
+parser.add_argument('--model', type=str, default='W2V_QN', help='model name')
+parser.add_argument('--ngames', type=int, metavar='n', default='150', help='number of games to simulate')
 parser.add_argument('--niter', type=int, metavar='n', default='1000', help='max number of iterations per game')
 parser.add_argument('--batch', type=int, metavar='nagent', default=None, help='batch run several agent at the same time')
 parser.add_argument('--verbose', action='store_true', default=True, help='Display cumulative results at each step')
@@ -33,10 +35,10 @@ def main():
     # agent_class = eval('agent.{}'.format(args.agent))
     # env_class = eval('environment.{}({})'.format(args.environment,args.graph))
     logging.info('Loading graph...')
-    graph_class=graph.Graph(graph_type="gnp_random_graph",cur_n=20,p=.08)
+    graph_class=graph.Graph(graph_type=args.graph_type,cur_n=40,p=.12)
 
     logging.info('Loading agent...')
-    agent_class=agent.Agent(graph_class)
+    agent_class=agent.Agent(graph_class,args.model)
 
     logging.info('Loading environment...')
     env_class=environment.Environment(graph_class)

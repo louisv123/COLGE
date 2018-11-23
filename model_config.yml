@@ -11,7 +11,7 @@ W2V_QN:
   path_length: 80
   len_pre_pooling: 2
   len_post_pooling: 2
-  T: 5
+  T: 3
 
 LINE_QN:
   size: 50

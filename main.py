@@ -23,8 +23,9 @@ parser = argparse.ArgumentParser(description='RL running machine')
 parser.add_argument('--environment', metavar='ENV_CLASS', type=str, default='Environment', help='Class to use for the environment. Must be in the \'environment\' module')
 parser.add_argument('--agent', metavar='AGENT_CLASS', default='Agent', type=str, help='Class to use for the agent. Must be in the \'agent\' module.')
 parser.add_argument('--graph_type',metavar='GRAPH', default='erdos_renyi',help ='Type of graph to optimize')
-parser.add_argument('--model', type=str, default='W2V_QN', help='model name')
-parser.add_argument('--ngames', type=int, metavar='n', default='150', help='number of games to simulate')
+parser.add_argument('--graph_nbr', type=int, default='1000', help='number of graph to generate')
+parser.add_argument('--model', type=str, default='S2V_QN', help='model name')
+parser.add_argument('--ngames', type=int, metavar='n', default='999', help='number of games to simulate')
 parser.add_argument('--niter', type=int, metavar='n', default='1000', help='max number of iterations per game')
 parser.add_argument('--batch', type=int, metavar='nagent', default=None, help='batch run several agent at the same time')
 parser.add_argument('--verbose', action='store_true', default=True, help='Display cumulative results at each step')
@@ -35,13 +36,15 @@ def main():
     # agent_class = eval('agent.{}'.format(args.agent))
     # env_class = eval('environment.{}({})'.format(args.environment,args.graph))
     logging.info('Loading graph...')
-    graph_class=graph.Graph(graph_type=args.graph_type,cur_n=40,p=.12)
+    graph_dic = {}
+    for graph_ in range(args.graph_nbr):
+        graph_dic[graph_] = graph.Graph(graph_type=args.graph_type, cur_n=50, p=.09)
 
     logging.info('Loading agent...')
-    agent_class=agent.Agent(graph_class,args.model)
+    agent_class = agent.Agent(graph_dic, args.model)
 
     logging.info('Loading environment...')
-    env_class=environment.Environment(graph_class)
+    env_class = environment.Environment(graph_dic)
 
     if args.batch is not None:
         print("Running a batched simulation with {} agents in parallel...".format(args.batch))

@@ -10,13 +10,15 @@ in which the agents are run.
 
 class Environment:
     def __init__(self, graph):
-        self.graph_init=graph
-        self.nodes=self.graph_init.nodes()
-        self.observation=torch.zeros(1,self.nodes,1,dtype=torch.float)
-        self.nbr_of_nodes=0
-        self.edge_add_old = 0
+        self.graphs = graph
+        self.games = 0
 
     def reset(self):
+        self.games = +1
+        self.graph_init = self.graphs[self.games]
+        self.nodes = self.graph_init.nodes()
+        self.nbr_of_nodes = 0
+        self.edge_add_old = 0
         self.observation = torch.zeros(1,self.nodes,1,dtype=torch.float)
 
     def observe(self):
@@ -35,10 +37,10 @@ class Environment:
 
         new_nbr_nodes=np.sum(observation[0].numpy())
 
-        # if new_nbr_nodes-self.nbr_of_nodes>0:
-        #     reward=-1
-        # else:
-        #     reward=0
+        if new_nbr_nodes - self.nbr_of_nodes > 0:
+            reward = -1
+        else:
+            reward = 0
 
         self.nbr_of_nodes=new_nbr_nodes
 
@@ -55,9 +57,9 @@ class Environment:
             else:
                 edge_add += 1
 
-        reward = (edge_add - self.edge_add_old) / self.graph_init.average_neighbor_degree([node])[node] - 10
+        # reward = (edge_add - self.edge_add_old) / np.max([1,self.graph_init.average_neighbor_degree([node])[node]]) - 10
 
-        self.edge_add_old = edge_add
+        # self.edge_add_old = edge_add
 
         return (reward,done)
 

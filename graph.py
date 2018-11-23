@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 import collections
 
-seed=np.random.seed(12)
+seed = np.random.seed(120)
 
 class Graph:
     def __init__(self,graph_type,cur_n,p,m=None):

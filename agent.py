@@ -29,13 +29,9 @@ class DQAgent:
 
     def __init__(self,graph,model):
 
-        #self.graph=graph
-        self.nodes=graph.nodes()
-        self.adj = graph.adj()
-        self.adj=self.adj.todense()
-        self.adj=torch.from_numpy(np.expand_dims(self.adj.astype(int),axis=0))
-        self.adj = self.adj.type(torch.FloatTensor)
+        self.graphs = graph
         self.embed_dim = 64
+        self.model_name = model
 
         self.k = 20
         self.alpha = 0.1
@@ -48,34 +44,29 @@ class DQAgent:
         self.discount_factor=0.995
         self.games = 0
         self.t=1
-        self.memory=[]
+        self.memory = []
         self.memory_n=[]
-        self.minibatch_length = 16
 
-        self.last_action = 0
-        self.last_observation = torch.zeros(1,self.nodes,1, dtype=torch.float)
-        self.last_reward = -1
-        self.mu_init = torch.zeros(1,self.nodes,self.embed_dim,dtype=torch.float)
+        if self.model_name == 'S2V_QN':
 
-        if model=='S2V_QN':
+            args_init = load_model_config()[self.model_name]
+            self.model = models.S2V_QN(**args_init)
 
-            args_init = load_model_config()[model]
-            self.model =models.S2V_QN(**args_init)
+        elif self.model_name == 'LINE_QN':
 
-        elif model=='LINE_QN':
-
-            args_init = load_model_config()[model]
+            args_init = load_model_config()[self.model_name]
             self.model = models.LINE_QN(**args_init)
 
-        elif model=='W2V_QN':
+        elif self.model_name == 'W2V_QN':
 
-            args_init = load_model_config()[model]
-            self.model = models.W2V_QN(G=graph.g,**args_init)
-
+            args_init = load_model_config()[self.model_name]
+            self.model = models.W2V_QN(G=self.graphs[self.games], **args_init)
 
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1.e-5)
-        self.T=5
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1.e-6, momentum=0.9)
+        self.T = 5
+
+
 
 
     """
@@ -91,9 +82,27 @@ class DQAgent:
         #self.memory_n=[]
         self.games += 1
         #self.epsilon=1
+
+        if (len(self.memory) != 0) and (len(self.memory) % 3000 == 0):
+            self.memory = self.memory[-1500:]
+
+        if (len(self.memory_n) != 0) and (len(self.memory_n) % 3000 == 0):
+            self.memory_n = self.memory_n[-1500:]
+
+        self.minibatch_length = 16
+
+        self.nodes = self.graphs[self.games].nodes()
+        self.adj = self.graphs[self.games].adj()
+        self.adj = self.adj.todense()
+        self.adj = torch.from_numpy(np.expand_dims(self.adj.astype(int), axis=0))
+        self.adj = self.adj.type(torch.FloatTensor)
+
         self.last_action = 0
-        self.last_observation = torch.zeros(1,self.nodes, 1, dtype=torch.float)
-        self.last_reward = 0
+        self.last_observation = torch.zeros(1, self.nodes, 1, dtype=torch.float)
+        self.last_reward = -1
+        self.mu_init = torch.zeros(1, self.nodes, self.embed_dim, dtype=torch.float)
+
+
 
 
     def act(self, observation):

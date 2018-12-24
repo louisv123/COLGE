@@ -11,10 +11,9 @@ in which the agents are run.
 class Environment:
     def __init__(self, graph):
         self.graphs = graph
-        self.games = 0
 
-    def reset(self):
-        self.games = +1
+    def reset(self, g):
+        self.games = g
         self.graph_init = self.graphs[self.games]
         self.nodes = self.graph_init.nodes()
         self.nbr_of_nodes = 0
@@ -57,9 +56,10 @@ class Environment:
             else:
                 edge_add += 1
 
-        # reward = (edge_add - self.edge_add_old) / np.max([1,self.graph_init.average_neighbor_degree([node])[node]]) - 10
+        # reward = (edge_add - self.edge_add_old) / np.max(
+        #    [1, self.graph_init.average_neighbor_degree([node])[node]]) - 10
 
-        # self.edge_add_old = edge_add
+        self.edge_add_old = edge_add
 
         return (reward,done)
 

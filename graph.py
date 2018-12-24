@@ -2,10 +2,11 @@ import numpy as np
 import networkx as nx
 import collections
 
-seed = np.random.seed(120)
+
+# seed = np.random.seed(120)
 
 class Graph:
-    def __init__(self,graph_type,cur_n,p,m=None):
+    def __init__(self, graph_type, cur_n, p, m=None, seed=None):
 
         if graph_type == 'erdos_renyi':
             self.g = nx.erdos_renyi_graph(n=cur_n, p=p, seed=seed)
@@ -14,7 +15,7 @@ class Graph:
         elif graph_type == 'barabasi_albert':
             self.g = nx.barabasi_albert_graph(n=cur_n, m=m, seed=seed)
         elif graph_type =='gnp_random_graph':
-            self.g = nx.gnp_random_graph(n=cur_n,p=p,seed=seed)
+            self.g = nx.gnp_random_graph(n=cur_n, p=p, seed=seed)
 
         # power=0.75
         #

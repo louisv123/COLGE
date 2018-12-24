@@ -23,40 +23,47 @@ class Runner:
 
         cumul_reward = 0.0
         list_cumul_reward_game=[]
+        list_optimal_set = []
         mean_reward = []
+        for epoch_ in range(6):
+            print(str(epoch_) + '!!!')
+            for g in range(1, games + 1):
+                print(str(g) + '!!!!')
+                for epoch in range(10):
+                    self.environment.reset(g)
+                    self.agent.reset(g)
+                    cumul_reward_game = 0.0
 
-        for g in range(1, games+1):
-            for epoch in range(10):
-                self.environment.reset()
-                self.agent.reset()
-                cumul_reward_game = 0.0
+                    for i in range(1, max_iter + 1):
+                        # if self.verbose:
+                        # print("Simulation step {}:".format(i))
+                        (obs, act, rew, done) = self.step()
+                        cumul_reward += rew
+                        cumul_reward_game += rew
+                        if self.verbose:
+                            # print(" ->       observation: {}".format(obs))
+                            # print(" ->            action: {}".format(act))
+                            # print(" ->            reward: {}".format(rew))
+                            # print(" -> cumulative reward: {}".format(cumul_reward))
+                            if done:
+                                print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward_game))
+                                print(" ->    MVC_approx = {}".format(self.environment.get_mvc_approx()))
 
-                for i in range(1, max_iter + 1):
-                    # if self.verbose:
-                    # print("Simulation step {}:".format(i))
-                    (obs, act, rew, done) = self.step()
-                    cumul_reward += rew
-                    cumul_reward_game += rew
-                    if self.verbose:
-                        # print(" ->       observation: {}".format(obs))
-                        # print(" ->            action: {}".format(act))
-                        # print(" ->            reward: {}".format(rew))
-                        # print(" -> cumulative reward: {}".format(cumul_reward))
+                                list_cumul_reward_game.append(-cumul_reward_game)
+                                # print("optimal set : " + str(np.sum(np.array(obs[0, :, 0]))))
+                                list_optimal_set.append(np.sum(np.array(obs[0, :, 0])))
+                                if g > 100:
+                                    mean_reward.append(np.mean(list_cumul_reward_game[-100:]))
                         if done:
-                            print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward_game))
-                            print(" ->    MVC_approx = {}".format(self.environment.get_mvc_approx()))
-
-                            list_cumul_reward_game.append(-cumul_reward_game)
-                            if g > 100:
-                                mean_reward.append(np.mean(list_cumul_reward_game[-100:]))
-                    if done:
-                        break
+                            break
 
 
             if self.verbose:
                 print(" <=> Finished game number: {} <=>".format(g))
                 print("")
         print(list_cumul_reward_game)
+        np.savetxt('test.out', list_cumul_reward_game, delimiter=',')
+        np.savetxt('opt_set.out', list_optimal_set, delimiter=',')
         plt.plot(list_cumul_reward_game)
         plt.show()
         return cumul_reward

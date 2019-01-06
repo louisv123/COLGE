@@ -36,16 +36,16 @@ class S2V_QN(torch.nn.Module):
                 torch.nn.init.normal_(pre_lin.weight, mean=0, std=0.01)
                 self.list_post_pooling.append(pre_lin)
 
-        self.q_1 = torch.nn.Linear(embed_dim, embed_dim,bias=False)
+        self.q_1 = torch.nn.Linear(embed_dim, embed_dim,bias=True)
         torch.nn.init.normal_(self.q_1.weight, mean=0, std=0.01)
-        self.q_2 = torch.nn.Linear(embed_dim, embed_dim,bias=False)
+        self.q_2 = torch.nn.Linear(embed_dim, embed_dim,bias=True)
         torch.nn.init.normal_(self.q_2.weight, mean=0, std=0.01)
         if self.reg_hidden > 0:
-            self.q_reg = torch.nn.Linear(2 * embed_dim, self.reg_hidden,bias=False)
+            self.q_reg = torch.nn.Linear(2 * embed_dim, self.reg_hidden,bias=True)
             torch.nn.init.normal_(self.q_reg.weight, mean=0, std=0.01)
-            self.q = torch.nn.Linear(self.reg_hidden, 1,bias=False)
+            self.q = torch.nn.Linear(self.reg_hidden, 1,bias=True)
         else:
-            self.q = torch.nn.Linear(2 * embed_dim, 1,bias=False)
+            self.q = torch.nn.Linear(2 * embed_dim, 1,bias=True)
         torch.nn.init.normal_(self.q.weight, mean=0, std=0.01)
 
     def forward(self, xv, adj):
@@ -103,7 +103,7 @@ class S2V_QN(torch.nn.Module):
             q_reg = self.q_reg(q_).clamp(0)
             q = self.q(q_reg)
         else:
-            q_=q.clamp(0)
+            q_=q_.clamp(0)
             q = self.q(q_)
         return q
 

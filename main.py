@@ -38,12 +38,16 @@ def main():
     # env_class = eval('environment.{}({})'.format(args.environment,args.graph))
     logging.info('Loading graph...')
     graph_dic = {}
-    seed = np.random.seed(120)
-    graph_set=graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12, seed=seed)
+    seed = np.random.seed(12)
+    graph_set=graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12)
+    graph_set_2 = graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12)
 
     for graph_ in range(args.graph_nbr):
-        #+graph_
-        graph_dic[graph_] = graph_set
+        #+graph
+        if graph_%2>=0:
+            graph_dic[graph_] = graph_set
+        else:
+            graph_dic[graph_] = graph_set_2
     logging.info('Loading agent...')
     agent_class = agent.Agent(graph_dic, args.model)
 

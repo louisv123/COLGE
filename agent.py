@@ -41,7 +41,7 @@ class DQAgent:
 
         self.epsilon=1
         self.epsilon_min=0.05
-        self.discount_factor =0.97# 0.9998
+        self.discount_factor =0.995# 0.9998
         # self.games = 0
         self.t=1
         self.memory = []
@@ -88,7 +88,7 @@ class DQAgent:
         if (len(self.memory_n) != 0) and (len(self.memory_n) % 30000 == 0):
             self.memory_n =random.sample(self.memory_n,12000)
 
-        self.minibatch_length = 128
+        self.minibatch_length = 32#128
 
         self.nodes = self.graphs[self.games].nodes()
         self.adj = self.graphs[self.games].adj()
@@ -122,7 +122,7 @@ class DQAgent:
             target_f = self.model(last_observation_tens, adj_tens)
             target_p = target_f.clone()
             target_f[range(self.minibatch_length),action_tens,:] = target
-            loss=self.criterion(target_f, target_p)
+            loss=self.criterion(target_p, target_f)
 
             self.optimizer.zero_grad()
             loss.backward()

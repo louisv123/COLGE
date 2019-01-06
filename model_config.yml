@@ -1,8 +1,8 @@
 S2V_QN:
-  reg_hidden: 64
+  reg_hidden: 0
   embed_dim: 64
-  len_pre_pooling: 0
-  len_post_pooling: 0
+  len_pre_pooling: 3
+  len_post_pooling: 3
   T: 5
 
 W2V_QN:

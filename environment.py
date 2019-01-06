@@ -56,8 +56,8 @@ class Environment:
             else:
                 edge_add += 1
 
-        # reward = (edge_add - self.edge_add_old) / np.max(
-        #    [1, self.graph_init.average_neighbor_degree([node])[node]]) - 10
+        reward = ((edge_add - self.edge_add_old) / np.max(
+            [1, self.graph_init.average_neighbor_degree([node])[node]]) - 10)/100
 
         self.edge_add_old = edge_add
 

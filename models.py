@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 import random
-from gensim.models import Word2Vec
+#from gensim.models import Word2Vec
 import networkx as nx
 import numpy as np
 
@@ -15,10 +15,10 @@ class S2V_QN(torch.nn.Module):
         self.T = T
         self.len_pre_pooling = len_pre_pooling
         self.len_post_pooling = len_post_pooling
-        self.mu_1 = torch.nn.Linear(1, embed_dim)
+        #self.mu_1 = torch.nn.Linear(1, embed_dim)
         self.mu_1 = torch.nn.Parameter(torch.Tensor(1, embed_dim))
         torch.nn.init.normal_(self.mu_1, mean=0, std=0.01)
-        self.mu_2 = torch.nn.Linear(embed_dim, embed_dim)
+        #self.mu_2 = torch.nn.Linear(embed_dim, embed_dim)
         self.mu_2 = torch.nn.Parameter(torch.Tensor(embed_dim, embed_dim))
         torch.nn.init.normal_(self.mu_2, mean=0, std=0.01)
 
@@ -36,16 +36,16 @@ class S2V_QN(torch.nn.Module):
                 torch.nn.init.normal_(pre_lin.weight, mean=0, std=0.01)
                 self.list_post_pooling.append(pre_lin)
 
-        self.q_1 = torch.nn.Linear(embed_dim, embed_dim)
+        self.q_1 = torch.nn.Linear(embed_dim, embed_dim,bias=False)
         torch.nn.init.normal_(self.q_1.weight, mean=0, std=0.01)
-        self.q_2 = torch.nn.Linear(embed_dim, embed_dim)
+        self.q_2 = torch.nn.Linear(embed_dim, embed_dim,bias=False)
         torch.nn.init.normal_(self.q_2.weight, mean=0, std=0.01)
         if self.reg_hidden > 0:
-            self.q_reg = torch.nn.Linear(2 * embed_dim, self.reg_hidden)
+            self.q_reg = torch.nn.Linear(2 * embed_dim, self.reg_hidden,bias=False)
             torch.nn.init.normal_(self.q_reg.weight, mean=0, std=0.01)
-            self.q = torch.nn.Linear(self.reg_hidden, 1)
+            self.q = torch.nn.Linear(self.reg_hidden, 1,bias=False)
         else:
-            self.q = torch.nn.Linear(2 * embed_dim, 1)
+            self.q = torch.nn.Linear(2 * embed_dim, 1,bias=False)
         torch.nn.init.normal_(self.q.weight, mean=0, std=0.01)
 
     def forward(self, xv, adj):
@@ -90,20 +90,20 @@ class S2V_QN(torch.nn.Module):
         q_1_ = q_1.clone()
         q_1_ = q_1_.expand(minibatch_size, nbr_node, self.embed_dim)
         ####
-        mat = xv.reshape(minibatch_size, nbr_node).type(torch.ByteTensor)
-        mat = torch.ones(minibatch_size, nbr_node).type(torch.ByteTensor) - mat
-        res = torch.zeros(minibatch_size, nbr_node, nbr_node)
-        res = res.as_strided(mat.size(), [res.stride(0), res.size(2) + 1]).copy_(mat)
-        mu_ = mu.clone()
-        mu_ = mu_.transpose(1, 2)
-        mu_y = torch.mul(mu_, res)
-        mu_y = mu_y.transpose(1, 2)
-        q_2 = self.q_2(mu_y)
-        q_ = torch.cat((q_1_, q_2), dim=-1).clamp(0)
+        # mat = xv.reshape(minibatch_size, nbr_node).type(torch.ByteTensor)
+        # mat = torch.ones(minibatch_size, nbr_node).type(torch.ByteTensor) - mat
+        # res = torch.zeros(minibatch_size, nbr_node, nbr_node)
+        # res.as_strided(mat.size(), [res.stride(0), res.size(2) + 1]).copy_(mat)
+        # mu_ = mu.transpose(1, 2)
+        # mu_y = torch.matmul(mu_, res)
+        # mu_y = mu_y.transpose(1, 2)
+        q_2 = self.q_2(mu)
+        q_ = torch.cat((q_1_, q_2), dim=-1)
         if self.reg_hidden > 0:
-            q_reg = self.q_reg(q_)
+            q_reg = self.q_reg(q_).clamp(0)
             q = self.q(q_reg)
         else:
+            q_=q.clamp(0)
             q = self.q(q_)
         return q
 
@@ -205,7 +205,7 @@ class LINE_QN(torch.nn.Module):
     def __init__(self, size, embed_dim=128, order=1):
         super(LINE_QN, self).__init__()
 
-        assert order in [1, 2], print("Order should either be int(1) or int(2)")
+        #assert order in [1, 2], print("Order should either be int(1) or int(2)")
 
         self.embed_dim = embed_dim
         self.order = order

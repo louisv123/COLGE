@@ -26,7 +26,7 @@ parser.add_argument('--agent', metavar='AGENT_CLASS', default='Agent', type=str,
 parser.add_argument('--graph_type',metavar='GRAPH', default='erdos_renyi',help ='Type of graph to optimize')
 parser.add_argument('--graph_nbr', type=int, default='1000', help='number of graph to generate')
 parser.add_argument('--model', type=str, default='S2V_QN', help='model name')
-parser.add_argument('--ngames', type=int, metavar='n', default='499', help='number of games to simulate')
+parser.add_argument('--ngames', type=int, metavar='n', default='700', help='number of games to simulate')
 parser.add_argument('--niter', type=int, metavar='n', default='1000', help='max number of iterations per game')
 parser.add_argument('--batch', type=int, metavar='nagent', default=None, help='batch run several agent at the same time')
 parser.add_argument('--verbose', action='store_true', default=True, help='Display cumulative results at each step')
@@ -38,10 +38,12 @@ def main():
     # env_class = eval('environment.{}({})'.format(args.environment,args.graph))
     logging.info('Loading graph...')
     graph_dic = {}
-    for graph_ in range(args.graph_nbr):
-        seed = np.random.seed(120 + graph_)
-        graph_dic[graph_] = graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12, seed=seed)
+    seed = np.random.seed(120)
+    graph_set=graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12, seed=seed)
 
+    for graph_ in range(args.graph_nbr):
+        #+graph_
+        graph_dic[graph_] = graph_set
     logging.info('Loading agent...')
     agent_class = agent.Agent(graph_dic, args.model)
 

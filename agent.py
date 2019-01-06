@@ -41,7 +41,7 @@ class DQAgent:
 
         self.epsilon=1
         self.epsilon_min=0.05
-        self.discount_factor = 0.9997
+        self.discount_factor =0.97# 0.9998
         # self.games = 0
         self.t=1
         self.memory = []
@@ -82,13 +82,13 @@ class DQAgent:
         self.games = g
         #self.epsilon=1
 
-        if (len(self.memory) != 0) and (len(self.memory) % 8000 == 0):
-            self.memory = self.memory[-4000:]
+        if (len(self.memory) != 0) and (len(self.memory) % 30000 == 0):
+            self.memory = random.sample(self.memory,12000)
 
-        if (len(self.memory_n) != 0) and (len(self.memory_n) % 8000 == 0):
-            self.memory_n = self.memory_n[-4000:]
+        if (len(self.memory_n) != 0) and (len(self.memory_n) % 30000 == 0):
+            self.memory_n =random.sample(self.memory_n,12000)
 
-        self.minibatch_length = 64
+        self.minibatch_length = 128
 
         self.nodes = self.graphs[self.games].nodes()
         self.adj = self.graphs[self.games].adj()
@@ -98,7 +98,7 @@ class DQAgent:
 
         self.last_action = 0
         self.last_observation = torch.zeros(1, self.nodes, 1, dtype=torch.float)
-        self.last_reward = -200
+        self.last_reward = -2
 
 
 
@@ -118,13 +118,11 @@ class DQAgent:
         if len(self.memory_n) > self.minibatch_length + self.n_step or self.games > 2:
 
             (last_observation_tens, action_tens, reward_tens, observation_tens, adj_tens) = self.get_sample()
-            target = reward_tens + self.gamma * \
-                     torch.max(self.model(observation_tens, adj_tens) + observation_tens * (-1e5), dim=1)[0]
+            target = reward_tens + self.gamma *torch.max(self.model(observation_tens, adj_tens) + observation_tens * (-1e5), dim=1)[0]
             target_f = self.model(last_observation_tens, adj_tens)
             target_p = target_f.clone()
             target_f[range(self.minibatch_length),action_tens,:] = target
-            loss=self.criterion(target_p, target_f)
-
+            loss=self.criterion(target_f, target_p)
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -134,7 +132,7 @@ class DQAgent:
             if self.epsilon > self.epsilon_min:
                self.epsilon *= self.discount_factor
 
-        self.remember(self.last_observation, action, self.last_reward, observation.clone())
+        self.remember(self.last_observation, self.last_action, self.last_reward, observation.clone())
 
         if self.t > self.n_step:
             self.remember_n(done)

@@ -88,7 +88,7 @@ class DQAgent:
         if (len(self.memory_n) != 0) and (len(self.memory_n) % 30000 == 0):
             self.memory_n =random.sample(self.memory_n,12000)
 
-        self.minibatch_length = 32#128
+        self.minibatch_length = 16#128
 
         self.nodes = self.graphs[self.games].nodes()
         self.adj = self.graphs[self.games].adj()

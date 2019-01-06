@@ -15,12 +15,12 @@ class S2V_QN(torch.nn.Module):
         self.T = T
         self.len_pre_pooling = len_pre_pooling
         self.len_post_pooling = len_post_pooling
-        #self.mu_1 = torch.nn.Linear(1, embed_dim)
-        self.mu_1 = torch.nn.Parameter(torch.Tensor(1, embed_dim))
-        torch.nn.init.normal_(self.mu_1, mean=0, std=0.01)
-        #self.mu_2 = torch.nn.Linear(embed_dim, embed_dim)
-        self.mu_2 = torch.nn.Parameter(torch.Tensor(embed_dim, embed_dim))
-        torch.nn.init.normal_(self.mu_2, mean=0, std=0.01)
+        self.mu_1 = torch.nn.Linear(1, embed_dim)
+        #self.mu_1 = torch.nn.Parameter(torch.Tensor(1, embed_dim))
+        #torch.nn.init.normal_(self.mu_1, mean=0, std=0.01)
+        self.mu_2 = torch.nn.Linear(embed_dim, embed_dim)
+        #self.mu_2 = torch.nn.Parameter(torch.Tensor(embed_dim, embed_dim))
+        #torch.nn.init.normal_(self.mu_2, mean=0, std=0.01)
 
         if self.len_pre_pooling > 0:
             self.list_pre_pooling = []
@@ -56,16 +56,16 @@ class S2V_QN(torch.nn.Module):
 
         for t in range(self.T):
             if t == 0:
-                # mu_1 = self.mu_1(xv)
-                mu_1 = torch.matmul(xv, self.mu_1)
+                mu_1 = self.mu_1(xv)
+                #mu_1 = torch.matmul(xv, self.mu_1)
                 # mu_2 = self.mu_2(torch.matmul(adj, mu_init))
                 # mu = torch.add(mu_1, mu_2).clamp(0)
                 mu = mu_1.clamp(0)
 
 
             else:
-                # mu_1 = self.mu_1(xv)
-                mu_1 = torch.matmul(xv, self.mu_1)
+                mu_1 = self.mu_1(xv)
+                #mu_1 = torch.matmul(xv, self.mu_1)
 
                 # before pooling:
                 if self.len_pre_pooling > 0:
@@ -79,9 +79,9 @@ class S2V_QN(torch.nn.Module):
                     for i in range(self.len_post_pooling):
                         mu_pool = self.list_post_pooling[i](mu_pool).clamp(0)
 
-                # mu_2 = self.mu_2(mu_pool)
-                mu_2_ = torch.matmul(self.mu_2, mu_pool.transpose(1, 2))
-                mu_2_ = mu_2_.transpose(1, 2)
+                mu_2_ = self.mu_2(mu_pool)
+                #mu_2_ = torch.matmul(self.mu_2, mu_pool.transpose(1, 2))
+                #mu_2_ = mu_2_.transpose(1, 2)
                 mu = torch.add(mu_1, mu_2_).clamp(0)
 
         # q_1 = self.q_1(torch.sum( mu,dim=1).reshape(minibatch_size,1,self.embed_dim).expand(minibatch_size,nbr_node,self.embed_dim))

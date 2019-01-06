@@ -44,6 +44,7 @@ class Runner:
                     if done:
                         print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward_game))
                         print(" ->    MVC_approx = {}".format(self.environment.get_mvc_approx()))
+                        print(" ->      Optimal set ={}".format(np.sum(self.environment.observation.detach().numpy())))
 
                         list_cumul_reward_game.append(-cumul_reward_game)
                         if g>100:

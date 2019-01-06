@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 import random
-from gensim.models import Word2Vec
+#from gensim.models import Word2Vec
 import networkx as nx
 import numpy as np
 

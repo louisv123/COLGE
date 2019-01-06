@@ -123,7 +123,7 @@ class DQAgent:
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            logging.info('Loss for t = %s is %f' % (self.t, loss))
+            #logging.info('Loss for t = %s is %f' % (self.t, loss))
 
             if self.epsilon > self.epsilon_min:
                self.epsilon *= self.discount_factor

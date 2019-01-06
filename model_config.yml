@@ -1,7 +1,7 @@
 S2V_QN:
   embed_dim: 64
-  len_pre_pooling: 2
-  len_post_pooling: 2
+  len_pre_pooling: 3
+  len_post_pooling: 3
   T: 5
 
 W2V_QN:

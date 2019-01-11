@@ -41,7 +41,7 @@ class DQAgent:
 
         self.epsilon=1
         self.epsilon_min=0.05
-        self.discount_factor =0.997# 0.9998
+        self.discount_factor =0.999# 0.9998
         # self.games = 0
         self.t=1
         self.memory = []
@@ -63,7 +63,7 @@ class DQAgent:
             self.model = models.W2V_QN(G=self.graphs[self.games], **args_init)
 
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1.e-5, momentum=0.9)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1.e-5)
         self.T = 5
 
 
@@ -132,7 +132,7 @@ class DQAgent:
             if self.epsilon > self.epsilon_min:
                self.epsilon *= self.discount_factor
 
-        self.remember(self.last_observation, self.last_action, self.last_reward, observation.clone())
+        self.remember(self.last_observation, action, self.last_reward, observation.clone())
 
         if self.t > self.n_step:
             self.remember_n(done)

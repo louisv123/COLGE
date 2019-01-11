@@ -1,5 +1,5 @@
 S2V_QN_1:
-  reg_hidden: 0
+  reg_hidden: 64
   embed_dim: 64
   len_pre_pooling: 3
   len_post_pooling: 3

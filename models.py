@@ -11,6 +11,7 @@ class S2V_QN_1(torch.nn.Module):
 
         super(S2V_QN_1, self).__init__()
         self.T = T
+        self.embed_dim=embed_dim
         self.reg_hidden=reg_hidden
         self.len_pre_pooling = len_pre_pooling
         self.len_post_pooling = len_post_pooling
@@ -45,6 +46,9 @@ class S2V_QN_1(torch.nn.Module):
 
     def forward(self, xv, adj):
 
+        minibatch_size = xv.shape[0]
+        nbr_node = xv.shape[1]
+
         for t in range(self.T):
             if t == 0:
                 #mu = self.mu_1(xv).clamp(0)
@@ -70,7 +74,7 @@ class S2V_QN_1(torch.nn.Module):
                 mu_2 = self.mu_2(mu_pool)
                 mu = torch.add(mu_1, mu_2).clamp(0)
 
-        q_1 = self.q_1(torch.matmul(adj, mu))
+        q_1 = self.q_1(torch.matmul(xv.transpose(1,2),mu)).expand(minibatch_size,nbr_node,self.embed_dim)
         q_2 = self.q_2(mu)
         q_ = torch.cat((q_1, q_2), dim=-1)
         if self.reg_hidden > 0:

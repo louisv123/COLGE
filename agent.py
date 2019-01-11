@@ -41,16 +41,16 @@ class DQAgent:
 
         self.epsilon=1
         self.epsilon_min=0.05
-        self.discount_factor =0.995# 0.9998
+        self.discount_factor =0.997# 0.9998
         # self.games = 0
         self.t=1
         self.memory = []
         self.memory_n=[]
 
-        if self.model_name == 'S2V_QN':
+        if self.model_name == 'S2V_QN_1':
 
             args_init = load_model_config()[self.model_name]
-            self.model = models.S2V_QN(**args_init)
+            self.model = models.S2V_QN_1(**args_init)
 
         elif self.model_name == 'LINE_QN':
 
@@ -88,7 +88,7 @@ class DQAgent:
         if (len(self.memory_n) != 0) and (len(self.memory_n) % 30000 == 0):
             self.memory_n =random.sample(self.memory_n,12000)
 
-        self.minibatch_length = 16#128
+        self.minibatch_length = 16
 
         self.nodes = self.graphs[self.games].nodes()
         self.adj = self.graphs[self.games].adj()
@@ -98,7 +98,7 @@ class DQAgent:
 
         self.last_action = 0
         self.last_observation = torch.zeros(1, self.nodes, 1, dtype=torch.float)
-        self.last_reward = -2
+        self.last_reward = -0.1
 
 
 

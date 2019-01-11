@@ -25,11 +25,11 @@ class Runner:
         list_cumul_reward_game=[]
         list_optimal_set = []
         mean_reward = []
-        for epoch_ in range(30):
+        for epoch_ in range(10):
             print(str(epoch_) + '!!!')
             for g in range(1, games + 1):
                 print(str(g) + '!!!!')
-                for epoch in range(10):
+                for epoch in range(5):
                     self.environment.reset(g)
                     self.agent.reset(g)
                     cumul_reward_game = 0.0

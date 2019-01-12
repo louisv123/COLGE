@@ -41,7 +41,7 @@ class DQAgent:
 
         self.epsilon=1
         self.epsilon_min=0.05
-        self.discount_factor =0.999# 0.9998
+        self.discount_factor =0.99995# 0.9998
         # self.games = 0
         self.t=1
         self.memory = []
@@ -63,7 +63,7 @@ class DQAgent:
             self.model = models.W2V_QN(G=self.graphs[self.games], **args_init)
 
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=1.e-5)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-5)
         self.T = 5
 
 
@@ -82,13 +82,13 @@ class DQAgent:
         self.games = g
         #self.epsilon=1
 
-        if (len(self.memory) != 0) and (len(self.memory) % 30000 == 0):
-            self.memory = random.sample(self.memory,12000)
+        if (len(self.memory) != 0) and (len(self.memory) % 300000 == 0):
+            self.memory = random.sample(self.memory,120000)
 
-        if (len(self.memory_n) != 0) and (len(self.memory_n) % 30000 == 0):
-            self.memory_n =random.sample(self.memory_n,12000)
+        if (len(self.memory_n) != 0) and (len(self.memory_n) % 300000 == 0):
+            self.memory_n =random.sample(self.memory_n,120000)
 
-        self.minibatch_length = 16
+        self.minibatch_length = 128
 
         self.nodes = self.graphs[self.games].nodes()
         self.adj = self.graphs[self.games].adj()

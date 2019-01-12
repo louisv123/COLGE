@@ -37,7 +37,7 @@ class Environment:
         new_nbr_nodes=np.sum(observation[0].numpy())
 
         if new_nbr_nodes - self.nbr_of_nodes > 0:
-            reward = -1/20
+            reward = -1
         else:
             reward = 0
 

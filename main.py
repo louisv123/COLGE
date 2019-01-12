@@ -43,7 +43,7 @@ def main():
 
     for graph_ in range(args.graph_nbr):
         seed = np.random.seed(120+graph_)
-        graph_dic[graph_]=graph_one#graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12, seed=seed)
+        graph_dic[graph_]=graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12, seed=seed)
 
     logging.info('Loading agent...')
     agent_class = agent.Agent(graph_dic, args.model)

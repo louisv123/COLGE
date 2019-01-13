@@ -70,12 +70,15 @@ class Environment:
             edge = edges[np.random.choice(len(edges))]
             cover_edge.append(edge[0])
             cover_edge.append(edge[1])
+            to_remove=[]
             for edge_ in edges:
                 if edge_[0]==edge[0] or edge_[0]==edge[1]:
-                    edges.remove(edge_)
+                    to_remove.append(edge_)
                 else:
                     if edge_[1]==edge[1] or edge_[1]==edge[0]:
-                        edges.remove(edge_)
+                        to_remove.append(edge_)
+            for i in to_remove:
+                edges.remove(i)
         return len(cover_edge)
 
 

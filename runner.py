@@ -5,6 +5,7 @@ This is not intented to be modified during the practical.
 """
 import matplotlib.pyplot as plt
 import numpy as np
+import agent
 
 class Runner:
     def __init__(self, environment, agent, verbose=False):
@@ -25,7 +26,7 @@ class Runner:
         list_cumul_reward_game=[]
         list_optimal_set = []
         mean_reward = []
-        for epoch_ in range(10):
+        for epoch_ in range(7):
             print(str(epoch_) + '!!!')
             for g in range(1, games + 1):
                 print(str(g) + '!!!!')
@@ -46,23 +47,25 @@ class Runner:
                             # print(" ->            reward: {}".format(rew))
                             # print(" -> cumulative reward: {}".format(cumul_reward))
                             if done:
+                                mvc_approx =self.environment.get_mvc_approx()
                                 print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward_game))
-                                print(" ->    MVC_approx = {}".format(self.environment.get_mvc_approx()))
+                                print(" ->    MVC_approx = {}".format(mvc_approx))
 
                                 list_cumul_reward_game.append(-cumul_reward_game)
-                                print("optimal set : " + str(np.sum(np.array(obs[0, :, 0]))))
-                                list_optimal_set.append(np.sum(np.array(obs[0, :, 0])))
+                                #print("optimal set : " + str(np.sum(np.array(obs[0, :, 0]))))
+                                list_optimal_set.append(-cumul_reward_game/(mvc_approx/2))
                                 if g > 100:
                                     mean_reward.append(np.mean(list_cumul_reward_game[-100:]))
                         if done:
                             break
-                np.savetxt('test_'+str(epoch_)+'.out', list_cumul_reward_game, delimiter=',')
+                np.savetxt('test_'+str(epoch_)+'.out', list_optimal_set, delimiter=',')
                 #np.savetxt('opt_set.out', list_optimal_set, delimiter=',')
 
             if self.verbose:
                 print(" <=> Finished game number: {} <=>".format(g))
                 print("")
         print(list_cumul_reward_game)
+        agent.save_model()
         np.savetxt('test.out', list_cumul_reward_game, delimiter=',')
         np.savetxt('opt_set.out', list_optimal_set, delimiter=',')
         plt.plot(list_cumul_reward_game)

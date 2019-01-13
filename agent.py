@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import time
+import os
 import logging
 import models
 from utils.config import load_model_config
@@ -40,8 +41,8 @@ class DQAgent:
         self.n_step=5
 
         self.epsilon=1
-        self.epsilon_min=0.05
-        self.discount_factor =0.99995# 0.9998
+        self.epsilon_min=0.02
+        self.discount_factor =0.99997# 0.9998
         # self.games = 0
         self.t=1
         self.memory = []
@@ -63,7 +64,7 @@ class DQAgent:
             self.model = models.W2V_QN(G=self.graphs[self.games], **args_init)
 
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-5)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-12)
         self.T = 5
 
 
@@ -98,7 +99,7 @@ class DQAgent:
 
         self.last_action = 0
         self.last_observation = torch.zeros(1, self.nodes, 1, dtype=torch.float)
-        self.last_reward = -0.1
+        self.last_reward = -1
 
 
 
@@ -184,6 +185,10 @@ class DQAgent:
                 for step in range(1,self.n_step-i):
                     cum_reward+=self.memory[-step][2]
                 self.memory_n.append((step_init[0], step_init[1], cum_reward, self.memory[-1][-2], self.games))
+
+    def save_model(self):
+        cwd = os.getcwd()
+        torch.save(self.model.state_dict(), cwd+'/model.pt')
 
 
 Agent = DQAgent

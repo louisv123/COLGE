@@ -53,7 +53,7 @@ class Runner:
 
                                 list_cumul_reward_game.append(-cumul_reward_game)
                                 #print("optimal set : " + str(np.sum(np.array(obs[0, :, 0]))))
-                                list_optimal_set.append(-cumul_reward_game/(mvc_approx/2))
+                                list_optimal_set.append(-cumul_reward_game/(mvc_approx))
                                 if g > 100:
                                     mean_reward.append(np.mean(list_cumul_reward_game[-100:]))
                         if done:
@@ -64,12 +64,11 @@ class Runner:
             if self.verbose:
                 print(" <=> Finished game number: {} <=>".format(g))
                 print("")
-        print(list_cumul_reward_game)
-        agent.save_model()
+
         np.savetxt('test.out', list_cumul_reward_game, delimiter=',')
         np.savetxt('opt_set.out', list_optimal_set, delimiter=',')
-        plt.plot(list_cumul_reward_game)
-        plt.show()
+        #plt.plot(list_cumul_reward_game)
+        #plt.show()
         return cumul_reward
 
 def iter_or_loopcall(o, count):

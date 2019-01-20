@@ -64,7 +64,7 @@ class DQAgent:
             self.model = models.W2V_QN(G=self.graphs[self.games], **args_init)
 
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-12)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-8)
         self.T = 5
 
 
@@ -99,7 +99,7 @@ class DQAgent:
 
         self.last_action = 0
         self.last_observation = torch.zeros(1, self.nodes, 1, dtype=torch.float)
-        self.last_reward = -1
+        self.last_reward = -0
 
 
 

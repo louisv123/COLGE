@@ -39,11 +39,11 @@ def main():
     logging.info('Loading graph...')
     graph_dic = {}
     seed = np.random.seed(120)
-    graph_one = graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12, seed=seed)
+    graph_one = graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12,m=2, seed=seed)
 
     for graph_ in range(args.graph_nbr):
         seed = np.random.seed(120+graph_)
-        graph_dic[graph_]=graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12, seed=seed)
+        graph_dic[graph_]=graph.Graph(graph_type=args.graph_type, cur_n=50, p=0.12,seed=seed)
 
     logging.info('Loading agent...')
     agent_class = agent.Agent(graph_dic, args.model)
@@ -56,11 +56,13 @@ def main():
         my_runner = runner.BatchRunner(env_class, agent_class, args.batch, args.verbose)
         final_reward = my_runner.loop(args.ngames, args.niter)
         print("Obtained a final average reward of {}".format(final_reward))
+        agent_class.save_model()
     else:
         print("Running a single instance simulation...")
         my_runner = runner.Runner(env_class, agent_class, args.verbose)
         final_reward = my_runner.loop(args.ngames, args.niter)
         print("Obtained a final reward of {}".format(final_reward))
+        agent_class.save_model()
 
 
 

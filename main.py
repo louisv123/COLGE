@@ -25,7 +25,7 @@ parser.add_argument('--environment_name', metavar='ENV_CLASS', type=str, default
 parser.add_argument('--agent', metavar='AGENT_CLASS', default='Agent', type=str, help='Class to use for the agent. Must be in the \'agent\' module.')
 parser.add_argument('--graph_type',metavar='GRAPH', default='erdos_renyi',help ='Type of graph to optimize')
 parser.add_argument('--graph_nbr', type=int, default='1000', help='number of graph to generate')
-parser.add_argument('--model', type=str, default='S2V_QN_1', help='model name')
+parser.add_argument('--model', type=str, default='GCN_QN_1', help='model name')
 parser.add_argument('--ngames', type=int, metavar='n', default='500', help='number of games to simulate')
 parser.add_argument('--niter', type=int, metavar='n', default='1000', help='max number of iterations per game')
 parser.add_argument('--batch', type=int, metavar='nagent', default=None, help='batch run several agent at the same time')

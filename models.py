@@ -339,3 +339,110 @@ class BASELINE(torch.nn.Module):
         l_3 = self.l_3(l_2)
 
         return l_3
+
+
+class GCN_QN_1(torch.nn.Module):
+    def __init__(self,reg_hidden, embed_dim, len_pre_pooling, len_post_pooling, T):
+
+        super(GCN_QN_1, self).__init__()
+        self.reg_hidden = reg_hidden
+        self.embed_dim = embed_dim
+        self.T = T
+        self.len_pre_pooling = len_pre_pooling
+        self.len_post_pooling = len_post_pooling
+
+
+        self.mu_1 = torch.nn.Linear(20, embed_dim, True)
+        torch.nn.init.normal_(self.mu_2.weight, mean=0, std=0.01)
+
+        self.mu_2 = torch.nn.Linear(embed_dim, embed_dim, True)
+        torch.nn.init.normal_(self.mu_2.weight, mean=0, std=0.01)
+
+        self.list_pre_pooling = []
+        for i in range(self.len_pre_pooling):
+            pre_lin = torch.nn.Linear(embed_dim, embed_dim, bias=True)
+            torch.nn.init.normal_(pre_lin.weight, mean=0, std=0.01)
+            self.list_pre_pooling.append(pre_lin)
+        self.list_post_pooling = []
+        for i in range(self.len_post_pooling):
+            post_lin = torch.nn.Linear(embed_dim, embed_dim, bias=True)
+            torch.nn.init.normal_(post_lin.weight, mean=0, std=0.01)
+            self.list_post_pooling.append(post_lin)
+
+
+        self.q_1 = torch.nn.Linear(embed_dim, embed_dim,bias=True)
+        torch.nn.init.normal_(self.q_1.weight, mean=0, std=0.01)
+        self.q_2 = torch.nn.Linear(embed_dim, embed_dim,bias=True)
+        torch.nn.init.normal_(self.q_1.weight, mean=0, std=0.01)
+        self.q = torch.nn.Linear(2 * embed_dim, 1,bias=True)
+        if self.reg_hidden > 0:
+            self.q_reg = torch.nn.Linear(2 * embed_dim, self.reg_hidden)
+            torch.nn.init.normal_(self.q_reg.weight, mean=0, std=0.01)
+            self.q = torch.nn.Linear(self.reg_hidden, 1)
+        else:
+            self.q = torch.nn.Linear(2 * embed_dim, 1)
+        torch.nn.init.normal_(self.q.weight, mean=0, std=0.01)
+
+    def forward(self, xv, adj):
+
+        minibatch_size = xv.shape[0]
+        nbr_node = xv.shape[1]
+
+        diag = torch.ones(nbr_node)
+        I = torch.diag(diag).expand(minibatch_size,nbr_node,nbr_node)
+        adj_=adj+I
+
+        D = torch.sum(adj,dim=1)
+        res = torch.zeros(minibatch_size,nbr_node,nbr_node)
+        D_=res.as_strided(D.size(), [res.stride(0), res.size(2) + 1]).copy_(D)
+        gv=torch.matmul(torch.inverse(D_),adj_)
+
+        for t in range(self.T):
+            if t == 0:
+                #mu = self.mu_1(xv).clamp(0)
+                mu = torch.matmul(xv, self.mu_1).clamp(0)
+                #mu.transpose_(1,2)
+                #mu_2 = self.mu_2(torch.matmul(adj, mu_init))
+                #mu = torch.add(mu_1, mu_2).clamp(0)
+
+            else:
+                #mu_1 = self.mu_1(xv)
+                mu_1 = torch.matmul(xv, self.mu_1).clamp(0)
+                #mu_1.transpose_(1,2)
+                # before pooling:
+                for i in range(self.len_pre_pooling):
+                    mu = self.list_pre_pooling[i](mu).clamp(0)
+
+                mu_pool = torch.matmul(gv, mu)
+
+                # after pooling
+                for i in range(self.len_post_pooling):
+                    mu_pool = self.list_post_pooling[i](mu_pool).clamp(0)
+
+                mu_2 = self.mu_2(mu_pool)
+                mu = torch.add(mu_1, mu_2).clamp(0)
+
+        q_1 = self.q_1(torch.matmul(xv.transpose(1,2),mu)).expand(minibatch_size,nbr_node,self.embed_dim)
+        q_2 = self.q_2(mu)
+        q_ = torch.cat((q_1, q_2), dim=-1)
+        if self.reg_hidden > 0:
+            q_reg = self.q_reg(q_).clamp(0)
+            q = self.q(q_reg)
+        else:
+            q_=q_.clamp(0)
+            q = self.q(q_)
+        return q
+
+# A = to_numpy_matrix(zkc, nodelist=order)
+# I = np.eye(zkc.number_of_nodes())
+#
+# A_hat = A + I
+# D_hat = np.array(np.sum(A_hat, axis=0))[0]
+# D_hat = np.matrix(np.diag(D_hat))
+# def gcn_layer(A_hat, D_hat, X, W):
+#     return relu(D_hat**-1 * A_hat * X * W)
+#
+# H_1 = gcn_layer(A_hat, D_hat, I, W_1)
+# H_2 = gcn_layer(A_hat, D_hat, H_1, W_2)
+#
+# output = H_2

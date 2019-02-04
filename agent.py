@@ -42,13 +42,21 @@ class DQAgent:
 
         self.epsilon=1
         self.epsilon_min=0.02
-        self.discount_factor =0.99997# 0.9998
+        self.discount_factor =0.99995#0.999985#85# 0.99997
+        self.eps_end=0.02
+        self.eps_start=1
+        self.eps_step=10000#200000.0
         # self.games = 0
         self.t=1
         self.memory = []
         self.memory_n=[]
 
         if self.model_name == 'S2V_QN_1':
+
+            args_init = load_model_config()[self.model_name]
+            self.model = models.S2V_QN_1(**args_init)
+
+        elif self.model_name== 'GCN_QN_1':
 
             args_init = load_model_config()[self.model_name]
             self.model = models.S2V_QN_1(**args_init)
@@ -64,8 +72,10 @@ class DQAgent:
             self.model = models.W2V_QN(G=self.graphs[self.games], **args_init)
 
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-8)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-12)
         self.T = 5
+
+        self.t = 1
 
 
 
@@ -77,14 +87,14 @@ class DQAgent:
 
     def reset(self, g):
 
-        self.t=1
+
         #self.memory=[]
         #self.memory_n=[]
         self.games = g
         #self.epsilon=1
 
-        if (len(self.memory) != 0) and (len(self.memory) % 300000 == 0):
-            self.memory = random.sample(self.memory,120000)
+        #if (len(self.memory) != 0) and (len(self.memory) % 300000 == 0):
+         #   self.memory = random.sample(self.memory,120000)
 
         if (len(self.memory_n) != 0) and (len(self.memory_n) % 300000 == 0):
             self.memory_n =random.sample(self.memory_n,120000)
@@ -99,7 +109,8 @@ class DQAgent:
 
         self.last_action = 0
         self.last_observation = torch.zeros(1, self.nodes, 1, dtype=torch.float)
-        self.last_reward = -0
+        self.last_reward = -0.1#.01#.1
+        self.iter=1
 
 
 
@@ -116,7 +127,7 @@ class DQAgent:
 
     def reward(self, observation, action, reward,done):
 
-        if len(self.memory_n) > self.minibatch_length + self.n_step or self.games > 2:
+        if len(self.memory_n) > self.minibatch_length + self.n_step: #or self.games > 2:
 
             (last_observation_tens, action_tens, reward_tens, observation_tens, adj_tens) = self.get_sample()
             target = reward_tens + self.gamma *torch.max(self.model(observation_tens, adj_tens) + observation_tens * (-1e5), dim=1)[0]
@@ -128,15 +139,17 @@ class DQAgent:
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            # print(self.t, loss)
+            #print(self.t, loss)
 
+            #self.epsilon = self.eps_end + max(0., (self.eps_start- self.eps_end) * (self.eps_step - self.t) / self.eps_step)
             if self.epsilon > self.epsilon_min:
                self.epsilon *= self.discount_factor
 
         self.remember(self.last_observation, action, self.last_reward, observation.clone())
 
-        if self.t > self.n_step:
+        if self.iter > self.n_step +2:
             self.remember_n(done)
+        self.iter+=1
         self.t += 1
         self.last_action = action
         self.last_observation = observation.clone()

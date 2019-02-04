@@ -25,6 +25,7 @@ class Runner:
         cumul_reward = 0.0
         list_cumul_reward_game=[]
         list_optimal_set = []
+        list_aprox_set =[]
         mean_reward = []
         for epoch_ in range(7):
             print(str(epoch_) + '!!!')
@@ -47,18 +48,22 @@ class Runner:
                             # print(" ->            reward: {}".format(rew))
                             # print(" -> cumulative reward: {}".format(cumul_reward))
                             if done:
-                                mvc_approx =self.environment.get_mvc_approx()
+                                mvc_approx =self.environment.get_approx()
+                                mvc_optimal = self.environment.get_optimal_sol()
                                 print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward_game))
-                                print(" ->    MVC_approx = {}".format(mvc_approx))
+                                print(" ->    Optimal solution = {}".format(mvc_optimal))
 
                                 list_cumul_reward_game.append(-cumul_reward_game)
                                 #print("optimal set : " + str(np.sum(np.array(obs[0, :, 0]))))
-                                list_optimal_set.append(-cumul_reward_game/(mvc_approx))
-                                if g > 100:
-                                    mean_reward.append(np.mean(list_cumul_reward_game[-100:]))
+                                list_optimal_set.append(cumul_reward_game/(mvc_optimal))
+                                list_aprox_set.append(cumul_reward_game/(mvc_approx))
+                                #if g > 100:
+                                 #   mean_reward.append(np.mean(list_cumul_reward_game[-100:]))
                         if done:
                             break
                 np.savetxt('test_'+str(epoch_)+'.out', list_optimal_set, delimiter=',')
+                np.savetxt('test_approx_' + str(epoch_) + '.out', list_aprox_set, delimiter=',')
+
                 #np.savetxt('opt_set.out', list_optimal_set, delimiter=',')
 
             if self.verbose:

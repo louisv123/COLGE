@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 
 parser = argparse.ArgumentParser(description='RL running machine')
-parser.add_argument('--environment', metavar='ENV_CLASS', type=str, default='Environment', help='Class to use for the environment. Must be in the \'environment\' module')
+parser.add_argument('--environment_name', metavar='ENV_CLASS', type=str, default='MVC', help='Class to use for the environment. Must be in the \'environment\' module')
 parser.add_argument('--agent', metavar='AGENT_CLASS', default='Agent', type=str, help='Class to use for the agent. Must be in the \'agent\' module.')
 parser.add_argument('--graph_type',metavar='GRAPH', default='erdos_renyi',help ='Type of graph to optimize')
 parser.add_argument('--graph_nbr', type=int, default='1000', help='number of graph to generate')
@@ -36,20 +36,20 @@ def main():
     args = parser.parse_args()
     # agent_class = eval('agent.{}'.format(args.agent))
     # env_class = eval('environment.{}({})'.format(args.environment,args.graph))
-    logging.info('Loading graph...')
+    logging.info('Loading graph %s' % args.graph_type)
     graph_dic = {}
     seed = np.random.seed(120)
-    graph_one = graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12,m=2, seed=seed)
+    graph_one = graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.12,m=4, seed=seed)
 
     for graph_ in range(args.graph_nbr):
         seed = np.random.seed(120+graph_)
-        graph_dic[graph_]=graph.Graph(graph_type=args.graph_type, cur_n=50, p=0.12,seed=seed)
+        graph_dic[graph_]=graph_one#graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.15,m=4,seed=seed)
 
     logging.info('Loading agent...')
     agent_class = agent.Agent(graph_dic, args.model)
 
-    logging.info('Loading environment...')
-    env_class = environment.Environment(graph_dic)
+    logging.info('Loading environment %s' % args.environment_name)
+    env_class = environment.Environment(graph_dic,args.environment_name)
 
     if args.batch is not None:
         print("Running a batched simulation with {} agents in parallel...".format(args.batch))

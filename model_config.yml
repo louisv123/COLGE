@@ -12,6 +12,13 @@ S2V_QN:
   len_post_pooling: 3
   T: 5
 
+GCN_QN_1:
+  reg_hidden: 64
+  embed_dim: 64
+  len_pre_pooling: 2
+  len_post_pooling: 2
+  T: 5
+
 W2V_QN:
   embed_dim: 64
   window_size: 5

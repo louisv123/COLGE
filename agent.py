@@ -43,7 +43,7 @@ class DQAgent:
         self.epsilon=1
         self.epsilon_=1
         self.epsilon_min=0.02
-        self.discount_factor =0.9996#0.999985#85# 0.99997
+        self.discount_factor =0.9995#0.999985#85# 0.99997
         self.eps_end=0.02
         self.eps_start=1
         self.eps_step=20000#200000.0
@@ -78,7 +78,7 @@ class DQAgent:
             self.model = models.W2V_QN(G=self.graphs[self.games], **args_init)
 
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-15)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-16)
         #self.optimizer_target =  torch.optim.Adam(self.model_target.parameters(), lr=1.e-4)
         self.T = 5
 

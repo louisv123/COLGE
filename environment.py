@@ -41,7 +41,7 @@ class Environment:
             new_nbr_nodes=np.sum(observation[0].numpy())
 
             if new_nbr_nodes - self.nbr_of_nodes > 0:
-                reward = -1
+                reward = -1#np.round(-1.0/20.0,3)
             else:
                 reward = 0
 
@@ -61,7 +61,7 @@ class Environment:
                     edge_add += 1
 
             #reward = ((edge_add - self.edge_add_old) / np.max(
-             #   [1, self.graph_init.average_neighbor_degree([node])[node]]) - 10)/100
+            #   [1, self.graph_init.average_neighbor_degree([node])[node]]) - 10)/100
 
             self.edge_add_old = edge_add
 
@@ -76,7 +76,7 @@ class Environment:
             select_node=np.where(self.observation[0, :, 0].numpy() == 1)[0]
             for nodes in adj:
                 if ((nodes[0] in select_node) & (nodes[1] not in select_node)) | ((nodes[0] not in select_node) & (nodes[1] in select_node))  :
-                    reward += 1
+                    reward += 1#/20.0
             change_reward = reward-self.last_reward
             if change_reward<=0:
                 done=True

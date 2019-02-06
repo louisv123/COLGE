@@ -14,8 +14,8 @@ class Runner:
         self.verbose = verbose
 
     def step(self):
-        observation = self.environment.observe()
-        action = self.agent.act(observation)
+        observation = self.environment.observe().clone()
+        action = self.agent.act(observation).copy()
         (reward, done) = self.environment.act(action)
         self.agent.reward(observation, action, reward,done)
         return (observation, action, reward, done)

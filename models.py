@@ -16,7 +16,7 @@ class S2V_QN_1(torch.nn.Module):
         self.len_pre_pooling = len_pre_pooling
         self.len_post_pooling = len_post_pooling
         #self.mu_1 = torch.nn.Linear(1, embed_dim)
-       # torch.nn.init.normal_(self.mu_1.weight,mean=0,std=0.01)
+        #torch.nn.init.normal_(self.mu_1.weight,mean=0,std=0.01)
         self.mu_1 = torch.nn.Parameter(torch.Tensor(1, embed_dim))
         torch.nn.init.normal_(self.mu_1, mean=0, std=0.01)
         self.mu_2 = torch.nn.Linear(embed_dim, embed_dim,True)
@@ -34,8 +34,7 @@ class S2V_QN_1(torch.nn.Module):
         self.q_1 = torch.nn.Linear(embed_dim, embed_dim,bias=True)
         torch.nn.init.normal_(self.q_1.weight, mean=0, std=0.01)
         self.q_2 = torch.nn.Linear(embed_dim, embed_dim,bias=True)
-        torch.nn.init.normal_(self.q_1.weight, mean=0, std=0.01)
-        self.q = torch.nn.Linear(2 * embed_dim, 1,bias=True)
+        torch.nn.init.normal_(self.q_2.weight, mean=0, std=0.01)
         if self.reg_hidden > 0:
             self.q_reg = torch.nn.Linear(2 * embed_dim, self.reg_hidden)
             torch.nn.init.normal_(self.q_reg.weight, mean=0, std=0.01)
@@ -59,7 +58,7 @@ class S2V_QN_1(torch.nn.Module):
                 #mu = torch.add(mu_1, mu_2).clamp(0)
 
             else:
-                #mu_1 = self.mu_1(xv)
+                #mu_1 = self.mu_1(xv).clamp(0)
                 mu_1 = torch.matmul(xv, self.mu_1).clamp(0)
                 #mu_1.transpose_(1,2)
                 # before pooling:
@@ -85,6 +84,87 @@ class S2V_QN_1(torch.nn.Module):
             q_=q_.clamp(0)
             q = self.q(q_)
         return q
+
+class S2V_QN_2(torch.nn.Module):
+    def __init__(self,reg_hidden, embed_dim, len_pre_pooling, len_post_pooling, T):
+
+        super(S2V_QN_2, self).__init__()
+        self.T = T
+        self.embed_dim=embed_dim
+        self.reg_hidden=reg_hidden
+        self.len_pre_pooling = len_pre_pooling
+        self.len_post_pooling = len_post_pooling
+        #self.mu_1 = torch.nn.Linear(1, embed_dim)
+        #torch.nn.init.normal_(self.mu_1.weight,mean=0,std=0.01)
+        self.mu_1 = torch.nn.Parameter(torch.Tensor(1, embed_dim))
+        torch.nn.init.normal_(self.mu_1, mean=0, std=0.01)
+        self.mu_2 = torch.nn.Parameter(torch.Tensor(embed_dim, embed_dim))
+        torch.nn.init.normal_(self.mu_2, mean=0, std=0.01)
+        self.list_pre_pooling = []
+        for i in range(self.len_pre_pooling):
+            pre_lin = torch.nn.Linear(embed_dim,embed_dim,bias=True)
+            torch.nn.init.normal_(pre_lin.weight, mean=0, std=0.01)
+            self.list_pre_pooling.append(pre_lin)
+        self.list_post_pooling = []
+        for i in range(self.len_post_pooling):
+            post_lin =torch.nn.Linear(embed_dim,embed_dim,bias=True)
+            torch.nn.init.normal_(post_lin.weight, mean=0, std=0.01)
+            self.list_post_pooling.append(post_lin)
+        self.q_1 = torch.nn.Parameter(torch.Tensor(embed_dim, embed_dim))
+        torch.nn.init.normal_(self.q_1, mean=0, std=0.01)
+        self.q_2 = torch.nn.Parameter(torch.Tensor(embed_dim, embed_dim))
+        torch.nn.init.normal_(self.q_2, mean=0, std=0.01)
+        self.q = torch.nn.Parameter(torch.Tensor(2 * embed_dim, 1))
+        if self.reg_hidden > 0:
+            self.q_reg = torch.nn.Parameter(torch.Tensor(2 * embed_dim, self.reg_hidden))
+            torch.nn.init.normal_(self.q_reg, mean=0, std=0.01)
+            self.q = torch.nn.Parameter(torch.tensor(self.reg_hidden, 1))
+        else:
+            self.q = torch.nn.Parameter(torch.Tensor(2 * embed_dim, 1))
+        torch.nn.init.normal_(self.q, mean=0, std=0.01)
+
+    def forward(self, xv, adj):
+
+
+        for t in range(self.T):
+            if t == 0:
+                #mu = self.mu_1(xv).clamp(0)
+                mu = torch.matmul(xv, self.mu_1).clamp(0)
+                #mu.transpose_(1,2)
+                #mu_2 = self.mu_2(torch.matmul(adj, mu_init))
+                #mu = torch.add(mu_1, mu_2).clamp(0)
+
+            else:
+                #mu_1 = self.mu_1(xv).clamp(0)
+                mu_1 = torch.matmul(xv, self.mu_1).clamp(0)
+                #mu_1.transpose_(1,2)
+                # before pooling:
+                for i in range(self.len_pre_pooling):
+                    mu = self.list_pre_pooling[i](mu).clamp(0)
+
+                mu_pool = torch.matmul(adj, mu)
+                mu_2 = torch.matmul(mu_pool, self.mu_2)
+
+                # after pooling
+                for i in range(self.len_post_pooling):
+                    mu_2 = self.list_post_pooling[i](mu_2).clamp(0)
+
+
+                mu = torch.add(mu_1, mu_2).clamp(0)
+
+        #q_1 = self.q_1(torch.matmul(xv.transpose(1,2),mu)).expand(minibatch_size,nbr_node,self.embed_dim)
+        q_1 = torch.matmul(torch.matmul(adj,mu),self.q_1)
+        q_2 = torch.matmul(mu,self.q_2)
+        q_ = torch.cat((q_1, q_2), dim=-1)
+        if self.reg_hidden > 0:
+            q_reg = torch.matmul(self.q_reg,q_).clamp(0)
+            q = torch.matmul(self.q,q_reg)
+        else:
+            q_=q_.clamp(0)
+            q =torch.matmul(q_,self.q)
+        return q
+
+
 
 class S2V_QN(torch.nn.Module):
     def __init__(self, reg_hidden, embed_dim, len_pre_pooling, len_post_pooling, T):
@@ -352,8 +432,8 @@ class GCN_QN_1(torch.nn.Module):
         self.len_post_pooling = len_post_pooling
 
 
-        self.mu_1 = torch.nn.Linear(20, embed_dim, True)
-        torch.nn.init.normal_(self.mu_2.weight, mean=0, std=0.01)
+        self.mu_1 = torch.nn.Parameter(torch.Tensor(1, embed_dim))
+        torch.nn.init.normal_(self.mu_1, mean=0, std=0.01)
 
         self.mu_2 = torch.nn.Linear(embed_dim, embed_dim, True)
         torch.nn.init.normal_(self.mu_2.weight, mean=0, std=0.01)
@@ -393,9 +473,16 @@ class GCN_QN_1(torch.nn.Module):
         adj_=adj+I
 
         D = torch.sum(adj,dim=1)
-        res = torch.zeros(minibatch_size,nbr_node,nbr_node)
-        D_=res.as_strided(D.size(), [res.stride(0), res.size(2) + 1]).copy_(D)
-        gv=torch.matmul(torch.inverse(D_),adj_)
+        d = []
+        for vec in D:
+            d.append(torch.diag(torch.rsqrt(vec)))
+        d=torch.stack(d)
+
+        #res = torch.zeros(minibatch_size,nbr_node,nbr_node)
+        #D_=res.as_strided(res.size(), [res.stride(0), res.size(2) + 1]).copy_(D)
+
+        gv=torch.matmul(torch.matmul(d,adj_),d)
+
 
         for t in range(self.T):
             if t == 0:
@@ -413,11 +500,11 @@ class GCN_QN_1(torch.nn.Module):
                 for i in range(self.len_pre_pooling):
                     mu = self.list_pre_pooling[i](mu).clamp(0)
 
-                mu_pool = torch.matmul(gv, mu)
-
-                # after pooling
                 for i in range(self.len_post_pooling):
+                    mu_pool = torch.matmul(gv, mu)
                     mu_pool = self.list_post_pooling[i](mu_pool).clamp(0)
+
+
 
                 mu_2 = self.mu_2(mu_pool)
                 mu = torch.add(mu_1, mu_2).clamp(0)

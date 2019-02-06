@@ -5,6 +5,13 @@ S2V_QN_1:
   len_post_pooling: 2
   T: 5
 
+S2V_QN_2:
+  reg_hidden: 0
+  embed_dim: 64
+  len_pre_pooling: 0
+  len_post_pooling: 0
+  T: 5
+
 S2V_QN:
   reg_hidden: 0
   embed_dim: 64

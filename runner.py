@@ -27,7 +27,7 @@ class Runner:
         list_optimal_set = []
         list_aprox_set =[]
         mean_reward = []
-        for epoch_ in range(7):
+        for epoch_ in range(25):
             print(str(epoch_) + '!!!')
             for g in range(1, games + 1):
                 print(str(g) + '!!!!')

@@ -453,7 +453,7 @@ class GCN_QN_1(torch.nn.Module):
         self.q_1 = torch.nn.Linear(embed_dim, embed_dim,bias=True)
         torch.nn.init.normal_(self.q_1.weight, mean=0, std=0.01)
         self.q_2 = torch.nn.Linear(embed_dim, embed_dim,bias=True)
-        torch.nn.init.normal_(self.q_1.weight, mean=0, std=0.01)
+        torch.nn.init.normal_(self.q_2.weight, mean=0, std=0.01)
         self.q = torch.nn.Linear(2 * embed_dim, 1,bias=True)
         if self.reg_hidden > 0:
             self.q_reg = torch.nn.Linear(2 * embed_dim, self.reg_hidden)
@@ -500,8 +500,10 @@ class GCN_QN_1(torch.nn.Module):
                 for i in range(self.len_pre_pooling):
                     mu = self.list_pre_pooling[i](mu).clamp(0)
 
+                mu_pool = torch.matmul(gv, mu)
+
                 for i in range(self.len_post_pooling):
-                    mu_pool = torch.matmul(gv, mu)
+
                     mu_pool = self.list_post_pooling[i](mu_pool).clamp(0)
 
 

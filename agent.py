@@ -60,7 +60,7 @@ class DQAgent:
         elif self.model_name == 'S2V_QN_2':
             args_init = load_model_config()[self.model_name]
             self.model = models.S2V_QN_2(**args_init)
-            #self.model_target = models.S2V_QN_1(**args_init)
+
 
         elif self.model_name== 'GCN_QN_1':
 

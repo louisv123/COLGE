@@ -38,7 +38,7 @@ class DQAgent:
         self.alpha = 0.1
         self.gamma = 0.99
         self.lambd = 0.
-        self.n_step=5
+        self.n_step=3
 
         self.epsilon=1
         self.epsilon_=1
@@ -157,7 +157,7 @@ class DQAgent:
         if self.iter>1:
             self.remember(self.last_observation, self.last_action, self.last_reward, observation.clone(),self.last_done*1)
 
-        if done:
+        if done & self.iter> self.n_step:
               self.remember_n(False)
               new_observation = observation.clone()
               new_observation[:,action,:]=1

@@ -473,16 +473,19 @@ class GCN_QN_1(torch.nn.Module):
         adj_=adj+I
 
         D = torch.sum(adj,dim=1)
+        zero_selec = np.where(D.detach().numpy() == 0)
+        D[zero_selec[0], zero_selec[1]] = 0.01
         d = []
         for vec in D:
-            d.append(torch.diag(torch.rsqrt(vec)))
+            #d.append(torch.diag(torch.rsqrt(vec)))
+            d.append(torch.diag(vec))
         d=torch.stack(d)
 
         #res = torch.zeros(minibatch_size,nbr_node,nbr_node)
         #D_=res.as_strided(res.size(), [res.stride(0), res.size(2) + 1]).copy_(D)
 
-        gv=torch.matmul(torch.matmul(d,adj_),d)
-
+        #gv=torch.matmul(torch.matmul(d,adj_),d)
+        gv=torch.matmul(torch.inverse(d),adj_)
 
         for t in range(self.T):
             if t == 0:

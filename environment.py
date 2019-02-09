@@ -142,7 +142,7 @@ class Environment:
         elif self.name=="MAXCUT":
 
             x = list(range(self.graph_init.g.number_of_nodes()))
-            e = self.graph_init.edges()
+            e = list(self.graph_init.edges())
             xv = pulp.LpVariable.dicts('is_opti', x,
                                        lowBound=0,
                                        upBound=1,
@@ -157,10 +157,10 @@ class Environment:
             mdl += sum(ev[k] for k in ev)
 
             for i in e:
-                mdl+= e[i] <= xv[i[0]]+xv[i[1]]
+                mdl+= ev[i] <= xv[i[0]]+xv[i[1]]
 
             for i in e:
-                mdl+= e[i]<= 2 -(xv[i[0]]+xv[i[1]])
+                mdl+= ev[i]<= 2 -(xv[i[0]]+xv[i[1]])
 
             #pulp.LpSolverDefault.msg = 1
             mdl.solve()

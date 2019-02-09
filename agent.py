@@ -47,7 +47,6 @@ class DQAgent:
         self.eps_end=0.02
         self.eps_start=1
         self.eps_step=20000
-        # self.games = 0
         self.t=1
         self.memory = []
         self.memory_n=[]

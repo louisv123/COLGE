@@ -43,10 +43,10 @@ class DQAgent:
         self.epsilon=1
         self.epsilon_=1
         self.epsilon_min=0.02
-        self.discount_factor =0.999990#0.999985#85# 0.99997
+        self.discount_factor =0.999990
         self.eps_end=0.02
         self.eps_start=1
-        self.eps_step=20000#200000.0
+        self.eps_step=20000
         # self.games = 0
         self.t=1
         self.memory = []
@@ -116,7 +116,7 @@ class DQAgent:
 
         self.last_action = 0
         self.last_observation = torch.zeros(1, self.nodes, 1, dtype=torch.float)
-        self.last_reward = -0.01#.1#.01#.
+        self.last_reward = -0.01
         self.last_done=0
         self.iter=1
 

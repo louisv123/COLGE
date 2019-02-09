@@ -34,8 +34,6 @@ parser.add_argument('--interactive', action='store_true', help='After training, 
 
 def main():
     args = parser.parse_args()
-    # agent_class = eval('agent.{}'.format(args.agent))
-    # env_class = eval('environment.{}({})'.format(args.environment,args.graph))
     logging.info('Loading graph %s' % args.graph_type)
     graph_dic = {}
     seed = 125#np.random.seed(120)

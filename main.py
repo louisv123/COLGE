@@ -66,43 +66,5 @@ def main():
 
 
 
-
-
-        # if args.interactive:
-        #     import pylab as plb
-        #     from mountaincarviewer import MountainCarViewer
-        #
-        #     # prepare for the visualization
-        #     plb.ion()
-        #     env = my_runner.environment
-        #     a = my_runner.agent
-        #     env.reset()
-        #     a.reset(env.get_range())
-        #     mv = MountainCarViewer(env.mc)
-        #     mv.create_figure(args.niter, args.niter)
-        #     plb.draw()
-        #
-        #
-        #     for _ in range(args.niter):
-        #         print('\rt = {}'.format(env.mc.t))
-        #         print("Enter to continue...")
-        #         input()
-        #
-        #         sys.stdout.flush()
-        #
-        #         obs = env.observe()
-        #         action = a.act(obs)
-        #         (reward, stop) = env.act(action)
-        #         a.reward(obs, action, reward)
-        #
-        #         # update the visualization
-        #         mv.update_figure()
-        #         plb.draw()
-        #
-        #         # check for rewards
-        #         if stop is not None:
-        #             print("\rTop reached at t = {}".format(env.mc.t))
-        #             break
-
 if __name__ == "__main__":
     main()

@@ -23,15 +23,15 @@ Arguments :
 
 - `--graph_type`, type=str, default='erdos_renyi' : define the kind of degree distribution of graphs. It must be among `erdos_renyi`, `powerlaw`, `barabasi_albert` or `gnp_random_graph`.
 
--`--graph_nbr`, type=int, default='1000', : number of graph to generate.
+- `--graph_nbr`, type=int, default='1000', : number of graph to generate.
 
--`--model`, type=str, default='GCN_QN_1', model name for Q-function. It must be either `S2V_QN_1` for structure2vec algorithm or `GCN_QN_1` for graph_convolunional network algortihm.
+- `--model`, type=str, default='GCN_QN_1', model name for Q-function. It must be either `S2V_QN_1` for structure2vec algorithm or `GCN_QN_1` for graph_convolunional network algortihm.
 
--`--ngames`, type=int, default='500': number of games to simulate per epochs.
+- `--ngames`, type=int, default='500': number of games to simulate per epochs.
 
--`--niter`, type=int, default='1000', max number of iterations per game if the algorithm doesn't reach the terminal step.
+- `--niter`, type=int, default='1000', max number of iterations per game if the algorithm doesn't reach the terminal step.
 
--`--batch`, type=int, default=None, batch run several agent at the same time.
+- `--batch`, type=int, default=None, batch run several agent at the same time.
 
 ### graph.py
 

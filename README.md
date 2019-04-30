@@ -8,6 +8,9 @@ The goal of this study is to implement the work done by Dai and al. who develope
 
 ## Structure of the code
 
+
+![alt text](https://raw.githubusercontent.com/louisv123/COLGE/master/utils/structure.png)
+
 ### main.py
 
 `main.py` allows to define arguments and launch the code.

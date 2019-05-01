@@ -55,7 +55,7 @@ Define the Q-function and the embedding algorithm. `S2V_QN_1` and `GCN_QN_1` giv
 
 ### environment.py
 
-Define the environment object which is either MVC (Minimum vertex cover) of MAXCUT (Maximum cut set).
+Define the environment object which is either MVC (Minimum vertex cover) or MAXCUT (Maximum cut set).
 It contains as well the method to get the approximation solution and the optimal solution (with pulp)
 
   

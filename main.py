@@ -37,7 +37,6 @@ parser.add_argument('--p',default=0.14,help="p parameter in graph degree distrib
 parser.add_argument('--m',default=4,help="m parameter in graph degree distribution")
 parser.add_argument('--batch', type=int, metavar='nagent', default=None, help='batch run several agent at the same time')
 parser.add_argument('--verbose', action='store_true', default=True, help='Display cumulative results at each step')
-parser.add_argument('--interactive', action='store_true', help='After training, play once in interactive mode. Ignored in batch mode.')
 
 def main():
     args = parser.parse_args()

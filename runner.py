@@ -1,7 +1,6 @@
 """
 This is the machinnery that runs your agent in an environment.
 
-This is not intented to be modified during the practical.
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -116,7 +115,7 @@ class BatchRunner:
                 (reward, stop) = env.act(action)
                 agent.reward(observation, action, reward)
                 game_reward += reward
-                if stop =="stop":
+                if stop :
                     break
             rewards.append(game_reward)
         return sum(rewards)/len(rewards)

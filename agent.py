@@ -28,7 +28,7 @@ environment.
 class DQAgent:
 
 
-    def __init__(self,graph,model):
+    def __init__(self,graph,model,lr,bs,n_step):
 
         self.graphs = graph
         self.embed_dim = 64
@@ -38,18 +38,18 @@ class DQAgent:
         self.alpha = 0.1
         self.gamma = 0.99
         self.lambd = 0.
-        self.n_step=3
+        self.n_step=n_step
 
-        self.epsilon=1
         self.epsilon_=1
         self.epsilon_min=0.02
         self.discount_factor =0.999990
-        self.eps_end=0.02
-        self.eps_start=1
-        self.eps_step=20000
+        #self.eps_end=0.02
+        #self.eps_start=1
+        #self.eps_step=20000
         self.t=1
         self.memory = []
         self.memory_n=[]
+        self.minibatch_length = bs
 
         if self.model_name == 'S2V_QN_1':
 
@@ -77,8 +77,8 @@ class DQAgent:
             self.model = models.W2V_QN(G=self.graphs[self.games], **args_init)
 
         self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-4)
-        #self.optimizer_target =  torch.optim.Adam(self.model_target.parameters(), lr=1.e-4)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+
         self.T = 5
 
         self.t = 1
@@ -94,18 +94,12 @@ class DQAgent:
     def reset(self, g):
 
 
-        #self.memory=[]
-        #self.memory_n=[]
         self.games = g
-        #self.epsilon=1
-
-        #if (len(self.memory) != 0) and (len(self.memory) % 300000 == 0):
-         #   self.memory = random.sample(self.memory,120000)
 
         if (len(self.memory_n) != 0) and (len(self.memory_n) % 300000 == 0):
             self.memory_n =random.sample(self.memory_n,120000)
 
-        self.minibatch_length = 32
+
 
         self.nodes = self.graphs[self.games].nodes()
         self.adj = self.graphs[self.games].adj()
@@ -147,7 +141,6 @@ class DQAgent:
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            #print(self.model.mu_2.weight[0])
             #print(self.t, loss)
 
             #self.epsilon = self.eps_end + max(0., (self.eps_start- self.eps_end) * (self.eps_step - self.t) / self.eps_step)

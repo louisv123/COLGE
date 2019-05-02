@@ -20,59 +20,67 @@ class Runner:
         self.agent.reward(observation, action, reward,done)
         return (observation, action, reward, done)
 
-    def loop(self, games, max_iter):
+    def loop(self, games,nbr_epoch, max_iter):
 
         cumul_reward = 0.0
-        list_cumul_reward_game=[]
-        list_optimal_set = []
-        list_aprox_set =[]
-        mean_reward = []
-        for epoch_ in range(25):
-            print(str(epoch_) + '!!!')
+        list_cumul_reward=[]
+        list_optimal_ratio = []
+        list_aprox_ratio =[]
+
+        for epoch_ in range(nbr_epoch):
+            print(" -> epoch : "+str(epoch_))
             for g in range(1, games + 1):
-                print(str(g) + '!!!!')
+                print(" -> games : "+str(g))
                 for epoch in range(5):
                     self.environment.reset(g)
                     self.agent.reset(g)
-                    cumul_reward_game = 0.0
+                    cumul_reward = 0.0
 
                     for i in range(1, max_iter + 1):
                         # if self.verbose:
-                        # print("Simulation step {}:".format(i))
+                        #   print("Simulation step {}:".format(i))
                         (obs, act, rew, done) = self.step()
                         cumul_reward += rew
-                        cumul_reward_game += rew
                         if self.verbose:
                             # print(" ->       observation: {}".format(obs))
                             # print(" ->            action: {}".format(act))
                             # print(" ->            reward: {}".format(rew))
                             # print(" -> cumulative reward: {}".format(cumul_reward))
                             if done:
-                                mvc_approx =self.environment.get_approx()
-                                mvc_optimal = self.environment.get_optimal_sol()
-                                print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward_game))
-                                print(" ->    Optimal solution = {}".format(mvc_optimal))
+                                #solution from baseline algorithm
+                                approx_sol =self.environment.get_approx()
 
-                                list_cumul_reward_game.append(-cumul_reward_game)
-                                #print("optimal set : " + str(np.sum(np.array(obs[0, :, 0]))))
-                                list_optimal_set.append(cumul_reward_game/(mvc_optimal))
-                                list_aprox_set.append(cumul_reward_game/(mvc_approx))
-                                #if g > 100:
-                                 #   mean_reward.append(np.mean(list_cumul_reward_game[-100:]))
+                                #optimal solution
+                                optimal_sol = self.environment.get_optimal_sol()
+
+                                # print cumulative reward of one play, it is actually the solution found by the NN algorithm
+                                print(" ->    Terminal event: cumulative rewards = {}".format(cumul_reward))
+
+                                #print optimal solution
+                                print(" ->    Optimal solution = {}".format(optimal_sol))
+
+                                #we add in a list the solution found by the NN algorithm
+                                list_cumul_reward.append(-cumul_reward)
+
+                                #we add in a list the ratio between the NN solution and the optimal solution
+                                list_optimal_ratio.append(cumul_reward/(optimal_sol))
+
+                                #we add in a list the ratio between the NN solution and the baseline solution
+                                list_aprox_ratio.append(cumul_reward/(approx_sol))
+
                         if done:
                             break
-                np.savetxt('test_'+str(epoch_)+'.out', list_optimal_set, delimiter=',')
-                np.savetxt('test_approx_' + str(epoch_) + '.out', list_aprox_set, delimiter=',')
+                np.savetxt('test_'+str(epoch_)+'.out', list_optimal_ratio, delimiter=',')
+                np.savetxt('test_approx_' + str(epoch_) + '.out', list_aprox_ratio, delimiter=',')
 
-                #np.savetxt('opt_set.out', list_optimal_set, delimiter=',')
 
             if self.verbose:
                 print(" <=> Finished game number: {} <=>".format(g))
                 print("")
 
-        np.savetxt('test.out', list_cumul_reward_game, delimiter=',')
-        np.savetxt('opt_set.out', list_optimal_set, delimiter=',')
-        #plt.plot(list_cumul_reward_game)
+        np.savetxt('test.out', list_cumul_reward, delimiter=',')
+        np.savetxt('opt_set.out', list_optimal_ratio, delimiter=',')
+        #plt.plot(list_cumul_reward)
         #plt.show()
         return cumul_reward
 
@@ -113,13 +121,14 @@ class BatchRunner:
             rewards.append(game_reward)
         return sum(rewards)/len(rewards)
 
-    def loop(self, games, max_iter):
+    def loop(self, games,nb_epoch, max_iter):
         cum_avg_reward = 0.0
-        for g in range(1, games+1):
-            avg_reward = self.game(max_iter)
-            cum_avg_reward += avg_reward
-            if self.verbose:
-                print("Simulation game {}:".format(g))
-                print(" ->            average reward: {}".format(avg_reward))
-                print(" -> cumulative average reward: {}".format(cum_avg_reward))
+        for epoch in range(nb_epoch):
+            for g in range(1, games+1):
+                avg_reward = self.game(max_iter)
+                cum_avg_reward += avg_reward
+                if self.verbose:
+                    print("Simulation game {}:".format(g))
+                    print(" ->            average reward: {}".format(avg_reward))
+                    print(" -> cumulative average reward: {}".format(cum_avg_reward))
         return cum_avg_reward

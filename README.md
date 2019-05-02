@@ -23,13 +23,27 @@ Arguments :
 
 - `--graph_type`, type=str, default='erdos_renyi' : define the kind of degree distribution of graphs. It must be among `erdos_renyi`, `powerlaw`, `barabasi_albert` or `gnp_random_graph`.
 
-- `--graph_nbr`, type=int, default='1000', : number of graph to generate.
+- `--graph_nbr`, type=int, default='1000', : number of different graph to generate in training sample.
 
 - `--model`, type=str, default='GCN_QN_1', model name for Q-function. It must be either `S2V_QN_1` for structure2vec algorithm or `GCN_QN_1` for graph_convolunional network algortihm.
 
-- `--ngames`, type=int, default='500': number of games to simulate per epochs.
+- `--ngames`, type=int, default='500': number of games to simulate per epochs (each game is played 5 times).
 
 - `--niter`, type=int, default='1000', max number of iterations per game if the algorithm doesn't reach the terminal step.
+
+- `--epoch`, type=int, default=25, number of epochs.
+
+- `--lr`,type=float, default=1e-4, learning rate.
+
+- `--bs`,type=int,default=32, minibatch size for training.
+
+- `--n_step` ,type=int, default=3, n step in RL.
+
+- `--node`, type=int, default=20, number of node in generated graphs
+
+- `--p`,default=0.14, p, parameter in graph degree distribution (see networkx help).
+
+- `--m`, default=4,m, parameter in graph degree distribution, (see networkx help).
 
 - `--batch`, type=int, default=None, batch run several agent at the same time.
 
@@ -47,7 +61,8 @@ This script calls each step of reinforcement learning part in a loop (epochs + g
   
 ### agent.py
 
-Define the agent object and methods needed in deep Q-learning algorithm 
+Define the agent object and methods needed in deep Q-learning algorithm.
+There are a lot of paramters quite important defined in this part. The discount factor for exploration strategy, the T iterations for structure2vec, ....
 
 ### model.py
 

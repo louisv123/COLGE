@@ -1,11 +1,12 @@
 # Implementation of Dai and al. paper (Learning combinatorial optimization algorithms over graph) in Python and torch
-Source : https://arxiv.org/abs/1704.01665
+
+Source of the Dai and al. paper:
 
 ```
 @article{dai2017learning,
   title={Learning Combinatorial Optimization Algorithms over Graphs},
   author={Dai, Hanjun and Khalil, Elias B and Zhang, Yuyu and Dilkina, Bistra and Song, Le},
-  journal={arXiv preprint arXiv:1704.01665},
+  journal={arXiv preprint arXiv:1704.01665 https://arxiv.org/abs/1704.01665},
   year={2017}
 }
 ```

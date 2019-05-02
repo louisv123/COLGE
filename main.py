@@ -42,7 +42,7 @@ def main():
     args = parser.parse_args()
     logging.info('Loading graph %s' % args.graph_type)
     graph_dic = {}
-    seed = 125
+    #seed = 125
     #graph_one = graph.Graph(graph_type=args.graph_type, cur_n=20, p=0.15,m=4, seed=seed)
 
     for graph_ in range(args.graph_nbr):
